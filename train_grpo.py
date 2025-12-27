@@ -1,0 +1,73 @@
+import sys
+import torch
+from transformers import AutoModelForCausalLM
+from trl import GRPOConfig, GRPOTrainer
+from data_utils import load_config, load_and_process_dataset
+from reward_utils import get_reward_functions
+
+def main():
+    if len(sys.argv) < 2:
+        config_path = "config.yaml"
+    else:
+        config_path = sys.argv[1]
+
+    print(f"Loading config from {config_path}")
+    config = load_config(config_path)
+
+    # Load Model
+    print(f"Loading model: {config['model']['name_or_path']}")
+    model = AutoModelForCausalLM.from_pretrained(
+        config['model']['name_or_path'],
+        torch_dtype=config['model'].get('torch_dtype', 'auto'),
+        device_map=config['model'].get('device_map', 'auto')
+    )
+    
+    # Load and Process Dataset (using data_utils)
+    dataset = load_and_process_dataset(config)
+    
+    # Reward Functions (using reward_utils)
+    reward_funcs = get_reward_functions(config['data']['dataset_name'])
+    if not reward_funcs:
+        print(f"Warning: No specific reward functions found for {config['data']['dataset_name']}. Training might fail if reward function is required.")
+
+    # Training Arguments
+    print("Configuring training arguments...")
+    training_conf = config['training']
+    
+    training_args = GRPOConfig(
+        output_dir=training_conf['output_dir'],
+        learning_rate=float(training_conf['learning_rate']),
+        remove_unused_columns=False,
+        gradient_accumulation_steps=training_conf.get('gradient_accumulation_steps', 1),
+        num_train_epochs=training_conf.get('num_train_epochs', 1),
+        bf16=training_conf.get('bf16', False),
+        max_completion_length=config['generation']['max_completion_length'],
+        num_generations=config['generation']['num_generations'],
+        max_prompt_length=config['generation'].get('max_prompt_length', 128),
+        report_to=training_conf.get('report_to', []),
+        logging_steps=training_conf.get('logging_steps', 10),
+        push_to_hub=training_conf.get('push_to_hub', False),
+        save_strategy=training_conf.get('save_strategy', 'steps'),
+        save_steps=training_conf.get('save_steps', 10),
+        max_steps=training_conf.get('max_steps', -1),
+    )
+
+    # Trainer
+    print("Initializing GRPOTrainer...")
+    trainer = GRPOTrainer(
+        model=model,
+        reward_funcs=reward_funcs,
+        args=training_args,
+        train_dataset=dataset,
+    )
+
+    # Train
+    print("Starting training...")
+    trainer.train()
+    
+    # Save Model
+    trainer.save_model(config['training']['output_dir'])
+    print(f"Model saved to {config['training']['output_dir']}")
+
+if __name__ == "__main__":
+    main()
