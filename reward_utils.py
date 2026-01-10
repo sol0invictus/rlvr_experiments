@@ -1,5 +1,12 @@
 import re
-from math_verify import LatexExtractionConfig, parse, verify
+from math_verify import LatexExtractionConfig, parse, verify, StringExtractionConfig
+from math_verify import (
+    parse,
+    LatexExtractionConfig,
+    StringExtractionConfig,
+    ExprExtractionConfig,
+)
+
 
 def format_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
@@ -24,14 +31,15 @@ def accuracy_reward_gsm8k(completions, **kwargs):
         else:
              gold_answer = str(solution)
 
-        gold_parsed = parse(gold_answer, extraction_mode="first_match", extraction_config=[LatexExtractionConfig()])
-        
+        gold_parsed = parse(gold_answer, extraction_mode="first_match", extraction_config=[LatexExtractionConfig(),ExprExtractionConfig(),StringExtractionConfig()])
+
         # Extract answer from the model completion (inside <answer> tags)
         answer_match = re.search(r"<answer>(.*?)</answer>", content, re.DOTALL)
+
         if answer_match:
             answer_content = answer_match.group(1).strip()
-            answer_parsed = parse(answer_content, extraction_mode="first_match", extraction_config=[LatexExtractionConfig()])
-            
+            answer_parsed = parse(answer_content, extraction_mode="first_match", extraction_config=[LatexExtractionConfig(),ExprExtractionConfig(),StringExtractionConfig()])
+
             if len(gold_parsed) != 0:
                 try:
                     rewards.append(float(verify(answer_parsed, gold_parsed)))

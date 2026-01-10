@@ -25,7 +25,7 @@ training:
 
 generation:
   max_completion_length: 2048
-  num_generations: 2
+  num_generations: 2ss
   max_prompt_length: 2048
 
 system_prompt: |
