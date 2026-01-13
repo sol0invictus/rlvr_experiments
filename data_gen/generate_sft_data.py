@@ -6,6 +6,7 @@ import json
 import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from environments.maze_env import MazeEnvironment
+from environments.syllogism_env import SyllogismEnvironment
 from environments.gsm8k import GSM8KEnvironment
 
 def load_config(config_path):
@@ -22,6 +23,8 @@ def get_environment(config):
         return GSM8KEnvironment(config)
     elif name == 'maze':
         return MazeEnvironment(config)
+    elif name == 'syllogism':
+        return SyllogismEnvironment(config)
     else:
         raise ValueError(f"Unknown environment: {name}")
 

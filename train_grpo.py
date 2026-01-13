@@ -5,6 +5,7 @@ from transformers import AutoModelForCausalLM
 from trl import GRPOConfig, GRPOTrainer
 from environments.gsm8k import GSM8KEnvironment
 from environments.maze_env import MazeEnvironment
+from environments.syllogism_env import SyllogismEnvironment
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -24,6 +25,8 @@ def get_environment(config):
         return GSM8KEnvironment(config)
     elif name == 'maze':
         return MazeEnvironment(config)
+    elif name == 'syllogism':
+        return SyllogismEnvironment(config)
     else:
         raise ValueError(f"Unknown environment: {name}")
 

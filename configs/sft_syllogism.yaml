@@ -1,0 +1,37 @@
+model:
+  name_or_path: Qwen/Qwen2-0.5B-Instruct
+  torch_dtype: auto
+  device_map: auto
+
+environment:
+  name: syllogism
+  seed: 42
+  size: 50
+  allow_all: true
+  allow_no: true
+  allow_some: true
+  allow_some_not: true
+  invalid_ratio: 0.5
+
+sft:
+  output_file: syllogism_sft_data.jsonl
+  max_samples: 50
+  think_start_token: "<think>"
+  think_end_token: "</think>"
+  answer_start_token: "<answer>"
+  answer_end_token: "</answer>"
+  ignore_index: -100
+  system_prompt: "You are a helpful assistant. You are given two premises and a conclusion. You need to determine if the conclusion logically follows from the premises. You must output your reasoning steps within <think></think> tags and your final answer (Yes or No) within <answer></answer> tags."
+
+training:
+  output_dir: outputs/syllogism-sft
+  learning_rate: 2.0e-5
+  num_train_epochs: 3
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  logging_steps: 1
+  save_strategy: epoch
+  bf16: true
+  max_seq_length: 512
+  report_to:
+    - tensorboard
