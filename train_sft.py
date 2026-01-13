@@ -44,7 +44,6 @@ def main():
     training_args = SFTConfig(
         output_dir=output_dir,
         dataset_text_field="text", # We will likely not use this if we have formatted messages, but SFTTrainer needs something or we use formatting_func
-        max_seq_length=config['generation'].get('max_prompt_length', 512) + config['generation'].get('max_completion_length', 512),
         learning_rate=float(train_args_conf.get('learning_rate', 2e-5)),
         num_train_epochs=train_args_conf.get('num_train_epochs', 1),
         bf16=train_args_conf.get('bf16', False),
@@ -68,11 +67,14 @@ def main():
         
     print("Initializing SFTTrainer...")
     
+    # SFTTrainer automatically masks the user prompt when using 'messages' format in the dataset.
+    # We rely on this built-in behavior to ensure only the assistant response is trained.
+
     trainer = SFTTrainer(
         model=model,
         train_dataset=dataset,
         args=training_args,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
     )
     
     print("Starting SFT...")
