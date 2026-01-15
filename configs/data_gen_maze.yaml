@@ -1,0 +1,32 @@
+# Sample configuration for SFT data generation
+# Usage: python data_gen/generate_sft_data.py configs/sft_data_gen_sample.yaml
+
+model:
+  name_or_path: Qwen/Qwen2-1.5B-Instruct
+  torch_dtype: bfloat16
+  device_map: auto
+
+environment:
+  name: maze
+  # Environment specific parameters
+  min_dist: 2
+  max_dist: 8
+  seed: 42
+  size: 10 # 10x10 maze
+
+sft:
+  output_file: data/maze_sft_sample.jsonl
+  max_samples: 50
+
+  # Special tokens for reasoning
+  think_start_token: "<think>"
+  think_end_token: "</think>"
+  answer_start_token: "<answer>"
+  answer_end_token: "</answer>"
+
+  # System prompt template
+  # Available placeholders: {think_start}, {think_end}, {answer_start}, {answer_end}
+  system_prompt: |
+    You are a helpful assistant. You are given a problem and its correct solution. 
+    Your task is to generate the step-by-step reasoning that leads to this solution. 
+    Output the reasoning inside {think_start}{think_end} tags and the final answer inside {answer_start}{answer_end} tags.
