@@ -1,5 +1,5 @@
 model:
-  name_or_path: /home/rlvr_experiments/outputs/maze-sft #Qwen/Qwen2-0.5B-Instruct
+  name_or_path: /home/rlvr_experiments/Qwen2-0.5B-GRPO-Maze/checkpoint-400 #/home/rlvr_experiments/outputs/maze-sft #Qwen/Qwen2-0.5B-Instruct
   torch_dtype: auto
   device_map: auto
 
@@ -10,24 +10,24 @@ env:
   min_dist: 2
   max_dist: 5
   min_grid_size: 5
-  max_grid_size: 8
+  max_grid_size: 10
   seed: 42
   size: 200 # Small size for testing
 
 training:
   output_dir: Qwen2-0.5B-GRPO-Maze
-  learning_rate: 1.0e-5
+  learning_rate: 1.0e-4
   gradient_accumulation_steps: 4
   num_train_epochs: 1
   bf16: true
   logging_steps: 5
   save_strategy: steps
-  save_steps: 50
-  max_steps: 100
+  save_steps: 100
+  max_steps: 1000
   report_to:
     - tensorboard
 
 generation:
-  max_completion_length: 512
+  max_completion_length: 1024
   num_generations: 4
-  max_prompt_length: 512
+  max_prompt_length: 1024

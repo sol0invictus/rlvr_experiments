@@ -174,6 +174,7 @@ def main():
         ]
         
         text = tokenizer.apply_chat_template(meta_prompt, tokenize=False, add_generation_prompt=True)
+        print(text)
         inputs = tokenizer(text, return_tensors="pt").to(model.device)
         
         # Force the model to start with the think_start token

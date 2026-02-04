@@ -40,6 +40,14 @@ class MazeEnvironment(BaseEnvironment):
 
     def get_dataset(self, config):
         print(f"Generating Maze dataset with config: {self.maze_config}")
+        
+        # Ensure we generate enough samples if max_samples is set
+        if config.get('sft', {}).get('max_samples'):
+             max_samples = config['sft']['max_samples']
+             if self.maze_config.size < max_samples:
+                  print(f"Increasing maze generation size from {self.maze_config.size} to {max_samples} to match max_samples")
+                  self.maze_config.size = max_samples
+
         dataset_generator = maze_game.MazeDataset(self.maze_config)
         
         # reasoning_gym datasets are iterable. We convert to list to make a HF Dataset.
