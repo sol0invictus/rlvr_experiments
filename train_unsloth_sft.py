@@ -195,6 +195,24 @@ def main():
     else:
         model, tokenizer = load_model_standard(config['model'])
     
+    # Ensure pad token is set
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    
+    # Create formatting function for messages format
+    def formatting_func(examples):
+        """Convert messages format to chat template strings."""
+        texts = []
+        for messages in examples['messages']:
+            # Apply chat template to convert messages to string
+            text = tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=False
+            )
+            texts.append(text)
+        return texts
+    
     # Training config
     print("\n--- Configuring Training ---")
     train_config = config['training']
@@ -222,13 +240,14 @@ def main():
         seed=train_config.get('seed', 42),
     )
     
-    # Create trainer
+    # Create trainer with formatting function
     print("\n--- Initializing Trainer ---")
     trainer = SFTTrainer(
         model=model,
         train_dataset=dataset,
         args=training_args,
         processing_class=tokenizer,
+        formatting_func=formatting_func,
     )
     
     # Train
@@ -248,3 +267,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
