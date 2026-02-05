@@ -70,18 +70,31 @@ class ArithmeticEnvironment:
     
     def correctness_reward(
         self,
-        completions: List[str],
-        ground_truth: List[str],
+        completions,
+        ground_truth,
         **kwargs
     ) -> List[float]:
         """
         Reward for correct answers.
         
         Extracts answer after "####" and compares to ground truth.
+        TRL may pass completions as strings or lists - handle both.
         """
         rewards = []
         
         for completion, truth in zip(completions, ground_truth):
+            # Handle different completion formats from TRL
+            if isinstance(completion, list):
+                # If it's a list of dicts (messages format), extract content
+                if len(completion) > 0 and isinstance(completion[0], dict):
+                    completion = completion[-1].get('content', '')
+                else:
+                    # It's a list of something else, try to join
+                    completion = ' '.join(str(x) for x in completion)
+            
+            # Ensure completion is a string
+            completion = str(completion) if completion is not None else ''
+            
             # Extract answer after #### marker
             extracted = self._extract_answer(completion)
             
@@ -91,7 +104,7 @@ class ArithmeticEnvironment:
             
             # Normalize and compare
             extracted_norm = self._normalize_answer(extracted)
-            truth_norm = self._normalize_answer(truth)
+            truth_norm = self._normalize_answer(str(truth))
             
             if extracted_norm == truth_norm:
                 rewards.append(1.0)
@@ -112,7 +125,7 @@ class ArithmeticEnvironment:
     
     def format_reward(
         self,
-        completions: List[str],
+        completions,
         **kwargs
     ) -> List[float]:
         """
@@ -123,6 +136,15 @@ class ArithmeticEnvironment:
         rewards = []
         
         for completion in completions:
+            # Handle different completion formats from TRL
+            if isinstance(completion, list):
+                if len(completion) > 0 and isinstance(completion[0], dict):
+                    completion = completion[-1].get('content', '')
+                else:
+                    completion = ' '.join(str(x) for x in completion)
+            
+            completion = str(completion) if completion is not None else ''
+            
             score = 0.0
             
             # Check for thinking tags

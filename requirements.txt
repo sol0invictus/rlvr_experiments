@@ -21,3 +21,4 @@ pyarrow>=14.0.0
 # Utils
 pyyaml>=6.0
 tqdm
+math-verify
