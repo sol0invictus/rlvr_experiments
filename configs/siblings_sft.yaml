@@ -1,10 +1,12 @@
 # Stage 2: SFT on Sibling Tasks (Arithmetic)
 # Training on: basic_arithmetic, chain_sum, leg_counting, fraction_simplification
-# Model starts from Stage 1 (atoms) checkpoint
+# 
+# For ablation study:
+#   - Use Qwen base to see if atoms help
+#   - Change to outputs/stage1_atoms_sft to test with atomic pre-training
 
 model:
-  # Use Stage 1 output as starting point
-  name_or_path: outputs/stage1_atoms_sft
+  name_or_path: Qwen/Qwen2.5-1.5B-Instruct  # Base model (no atoms)
   max_seq_length: 1024
   load_in_4bit: true
   lora:
