@@ -1,7 +1,8 @@
 import sys
+import argparse
 import torch
 import yaml
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
 from environments.gsm8k import GSM8KEnvironment
 from environments.maze_env import MazeEnvironment
@@ -40,11 +41,16 @@ def get_environment(config):
         raise ValueError(f"Unknown environment: {name}")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="GRPO Training")
+    parser.add_argument("config", nargs="?", default="config.yaml", help="Path to YAML config")
+    parser.add_argument("--max_steps", type=int, default=None, help="Override max_steps (for smoke testing)")
+    return parser.parse_args()
+
+
 def main():
-    if len(sys.argv) < 2:
-        config_path = "config.yaml"
-    else:
-        config_path = sys.argv[1]
+    args = parse_args()
+    config_path = args.config
 
     print(f"Loading config from {config_path}")
     config = load_config(config_path)
@@ -56,20 +62,43 @@ def main():
     # Load and Process Dataset
     dataset = env.get_dataset(config)
     
+    # Inject system_prompt into dataset rows if specified in config
+    system_prompt = config.get('system_prompt')
+    if system_prompt:
+        system_prompt = system_prompt.strip()
+        def add_system_prompt(example):
+            prompt = example['prompt']
+            # Only add if not already present
+            if not any(m.get('role') == 'system' for m in prompt):
+                prompt = [{'role': 'system', 'content': system_prompt}] + prompt
+                example['prompt'] = prompt
+            return example
+        dataset = dataset.map(add_system_prompt)
+    
     # Reward Functions
     reward_funcs = env.get_reward_functions()
     
     # Load Model
-    print(f"Loading model: {config['model']['name_or_path']}")
+    model_path = config['model']['name_or_path']
+    print(f"Loading model: {model_path}")
     model = AutoModelForCausalLM.from_pretrained(
-        config['model']['name_or_path'],
+        model_path,
         torch_dtype=config['model'].get('torch_dtype', 'auto'),
         device_map=config['model'].get('device_map', 'auto')
     )
     
+    # Load tokenizer (needed for stop_strings and reward decoding)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    
     # Training Arguments
     print("Configuring training arguments...")
     training_conf = config['training']
+    gen_conf = config.get('generation', {})
+    
+    # Allow CLI override of max_steps (for smoke testing)
+    max_steps = args.max_steps if args.max_steps is not None else training_conf.get('max_steps', -1)
     
     training_args = GRPOConfig(
         output_dir=training_conf['output_dir'],
@@ -78,15 +107,16 @@ def main():
         gradient_accumulation_steps=training_conf.get('gradient_accumulation_steps', 1),
         num_train_epochs=training_conf.get('num_train_epochs', 1),
         bf16=training_conf.get('bf16', False),
-        max_completion_length=config['generation']['max_completion_length'],
-        num_generations=config['generation']['num_generations'],
-        max_prompt_length=config['generation'].get('max_prompt_length', 128),
+        max_completion_length=gen_conf.get('max_completion_length', 1024),
+        num_generations=gen_conf.get('num_generations', 4),
+        max_prompt_length=gen_conf.get('max_prompt_length', 128),
+        temperature=gen_conf.get('temperature', 0.7),
         report_to=training_conf.get('report_to', []),
         logging_steps=training_conf.get('logging_steps', 10),
         push_to_hub=training_conf.get('push_to_hub', False),
         save_strategy=training_conf.get('save_strategy', 'steps'),
         save_steps=training_conf.get('save_steps', 10),
-        max_steps=training_conf.get('max_steps', -1),
+        max_steps=max_steps,
     )
 
     # Trainer
@@ -96,6 +126,7 @@ def main():
         reward_funcs=reward_funcs,
         args=training_args,
         train_dataset=dataset,
+        processing_class=tokenizer,
     )
 
     # Train

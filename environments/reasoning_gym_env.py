@@ -139,7 +139,12 @@ class ReasoningGymEnvironment:
         """
         Reward for proper output format.
         
-        Checks for <think>...</think> and <answer>...</answer> tags.
+        Graduated scoring to create gradient signal toward proper tags:
+        - <think> present but no </think>: 0.1 (started thinking but didn't close)
+        - <think>...</think> complete: 0.3
+        - <answer> present but no </answer>: 0.1
+        - <answer>...</answer> complete: 0.3
+        - Both complete (<think>...</think> + <answer>...</answer>): 1.0 (bonus)
         """
         rewards = []
         
@@ -147,15 +152,26 @@ class ReasoningGymEnvironment:
             completion = self._unwrap_completion(completion)
             score = 0.0
             
-            # Check for thinking tags
-            if '<think>' in completion and '</think>' in completion:
-                score += 0.5
+            has_think_open = '<think>' in completion
+            has_think_close = '</think>' in completion
+            has_answer_open = '<answer>' in completion
+            has_answer_close = '</answer>' in completion
             
-            # Check for answer tags (preferred) or #### marker (fallback)
-            if '<answer>' in completion and '</answer>' in completion:
-                score += 0.5
-            elif '####' in completion:
-                score += 0.25  # partial credit for old format
+            # Thinking tags
+            if has_think_open and has_think_close:
+                score += 0.3
+            elif has_think_open:
+                score += 0.1  # partial credit — encourages closing the tag
+            
+            # Answer tags
+            if has_answer_open and has_answer_close:
+                score += 0.3
+            elif has_answer_open:
+                score += 0.1
+            
+            # Bonus for fully correct format
+            if has_think_open and has_think_close and has_answer_open and has_answer_close:
+                score = 1.0
             
             rewards.append(score)
         

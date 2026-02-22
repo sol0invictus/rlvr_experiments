@@ -1,5 +1,5 @@
-# Intra-Category Transfer Pipeline Dependencies
-# For Colab Pro (A100)
+# RLVR Experiments Dependencies
+# For Lightning AI (A100)
 
 # Core ML
 torch>=2.1.0
@@ -9,8 +9,7 @@ peft>=0.7.0
 bitsandbytes>=0.41.0
 
 # Training
-trl>=0.12.0
-unsloth
+trl>=0.15.0  # Required for stop_strings support in GRPOConfig
 
 # Data
 reasoning-gym
