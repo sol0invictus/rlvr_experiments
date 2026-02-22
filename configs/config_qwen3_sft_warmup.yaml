@@ -19,8 +19,8 @@ sft:
 
 training:
   output_dir: results/qwen3_sft_warmup
-  learning_rate: 2.0e-5
-  num_train_epochs: 2
+  learning_rate: 5.0e-5
+  num_train_epochs: 5
   batch_size: 4
   gradient_accumulation_steps: 4
   bf16: true

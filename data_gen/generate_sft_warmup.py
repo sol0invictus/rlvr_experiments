@@ -288,7 +288,7 @@ def main():
     parser.add_argument(
         "--num_samples",
         type=int,
-        default=500,
+        default=1000,
         help="Total number of examples to generate",
     )
     parser.add_argument("--seed", type=int, default=42)

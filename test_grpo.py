@@ -69,7 +69,7 @@ def analyze_completions(trainer, dataset, tokenizer, model, num_samples=3):
 
         completion = tokenizer.decode(
             outputs[0][inputs["input_ids"].shape[1]:],
-            skip_special_tokens=True,
+            skip_special_tokens=False,
         )
 
         results["total"] += 1
@@ -249,11 +249,17 @@ def main():
     print(f"    </answer> close: {pre_results['has_answer_close']}/{pre_results['total']}")
     print(f"    Fully formatted: {pre_results['fully_formatted']}/{pre_results['total']}")
 
-    overall = training_success
+    # Determine pass/fail
+    format_pass = pre_results['fully_formatted'] > 0
+    overall = training_success and format_pass
     if overall:
         print("\n✓ SMOKE TEST PASSED — pipeline is ready")
     else:
-        print("\n✗ SMOKE TEST FAILED — check errors above")
+        if not training_success:
+            print("\n✗ SMOKE TEST FAILED — training crashed (check errors above)")
+        elif not format_pass:
+            print("\n✗ SMOKE TEST FAILED — model is not producing <think>/<answer> tags")
+            print("  Try: increase SFT warmup epochs (--num_epochs 5) or check SFT training logs")
 
     return 0 if overall else 1
 
