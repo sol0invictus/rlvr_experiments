@@ -92,6 +92,12 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
+    # Configure stop_strings on model's generation_config
+    # This makes HF generate() stop as soon as </answer> is produced
+    stop_strings = config.get('generation', {}).get('stop_strings', ['</answer>'])
+    model.generation_config.stop_strings = stop_strings
+    print(f"  stop_strings: {stop_strings}")
+    
     # Training Arguments
     print("Configuring training arguments...")
     training_conf = config['training']
@@ -111,7 +117,6 @@ def main():
         num_generations=gen_conf.get('num_generations', 4),
         max_prompt_length=gen_conf.get('max_prompt_length', 128),
         temperature=gen_conf.get('temperature', 0.7),
-        stop_strings=gen_conf.get('stop_strings', ['</answer>']),
         report_to=training_conf.get('report_to', []),
         logging_steps=training_conf.get('logging_steps', 10),
         push_to_hub=training_conf.get('push_to_hub', False),
