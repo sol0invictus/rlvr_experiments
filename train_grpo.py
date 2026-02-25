@@ -5,10 +5,6 @@ import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
 from environments.gsm8k import GSM8KEnvironment
-from environments.maze_env import MazeEnvironment
-from environments.syllogism_env import SyllogismEnvironment
-from environments.battleship_env import BattleshipEnvironment
-from environments.arithmetic_env import ArithmeticEnvironment
 from environments.reasoning_gym_env import ReasoningGymEnvironment
 
 def load_config(config_path):
@@ -27,14 +23,6 @@ def get_environment(config):
     name = env_config.get('name')
     if name == 'gsm8k':
         return GSM8KEnvironment(config)
-    elif name == 'maze':
-        return MazeEnvironment(config)
-    elif name == 'syllogism':
-        return SyllogismEnvironment(config)
-    elif name == 'battleship':
-        return BattleshipEnvironment(config)
-    elif name == 'arithmetic_multi':
-        return ArithmeticEnvironment(config)
     elif name == 'reasoning_gym':
         return ReasoningGymEnvironment(config)
     else:
