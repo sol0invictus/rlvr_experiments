@@ -1,14 +1,13 @@
-from .base import BaseEnvironment
-from .reasoning_gym_env import ReasoningGymEnvironment, REASONING_GYM_TASKS
+from .reasoning_gym_env import ReasoningGymEnvironment
 from .gsm8k import GSM8KEnvironment
 
 
-def load_environment(config: dict) -> BaseEnvironment:
+def load_environment(config: dict):
     """Return the correct environment instance for the given config.
 
     Resolution order:
     1. ``environment.name == 'gsm8k'`` → GSM8KEnvironment
-    2. ``environment.name`` matches any registered reasoning_gym task → ReasoningGymEnvironment
+    2. ``environment.name == 'reasoning_gym'`` → ReasoningGymEnvironment
     3. Legacy fallback: infer gsm8k from ``data.dataset_name``
     """
     env_cfg = config.get("environment", {})
@@ -17,7 +16,7 @@ def load_environment(config: dict) -> BaseEnvironment:
     if name == "gsm8k":
         return GSM8KEnvironment(config)
 
-    if name in REASONING_GYM_TASKS:
+    if name == "reasoning_gym":
         return ReasoningGymEnvironment(config)
 
     # Legacy path kept for backwards-compat with old configs
@@ -26,6 +25,6 @@ def load_environment(config: dict) -> BaseEnvironment:
 
     raise ValueError(
         f"Unknown environment '{name}'. "
-        f"Supported reasoning_gym tasks: {sorted(REASONING_GYM_TASKS)}. "
-        "Use 'gsm8k' for the GSM8K environment."
+        "Supported: 'gsm8k', 'reasoning_gym'."
     )
+
