@@ -106,7 +106,6 @@ def main():
         bf16=training_conf.get('bf16', False),
         max_completion_length=gen_conf.get('max_completion_length', 1024),
         num_generations=gen_conf.get('num_generations', 4),
-        max_prompt_length=gen_conf.get('max_prompt_length', 128),
         temperature=gen_conf.get('temperature', 0.7),
         report_to=training_conf.get('report_to', []),
         logging_steps=training_conf.get('logging_steps', 10),
