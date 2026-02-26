@@ -185,32 +185,12 @@ class ReasoningGymEnvironment:
         """
         Extract answer from model response.
         
-        Priority order:
-        1. <answer>...</answer> tags (DeepSeek-R1 format)
-        2. #### marker (GSM8K format)
-        3. Last non-empty line (fallback)
+        Only extracts from <answer>...</answer> tags. No fallbacks —
+        the model must learn to use proper tags to get correctness credit.
         """
-        # 1. Try <answer> tags
         match = re.search(r'<answer>(.*?)</answer>', text, re.DOTALL)
         if match:
             return match.group(1).strip()
-        
-        # 2. Try #### marker
-        if '####' in text:
-            parts = text.split('####')
-            if len(parts) > 1:
-                answer = parts[-1].strip()
-                # Take first line of answer (in case of trailing text)
-                answer = answer.split('\n')[0].strip()
-                return answer
-        
-        # 3. Fallback: last non-empty line
-        lines = text.strip().split('\n')
-        for line in reversed(lines):
-            line = line.strip()
-            if line and not line.startswith('<'):  # skip stray tags
-                return line
-        
         return None
     
     # ------------------------------------------------------------------
