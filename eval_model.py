@@ -25,7 +25,8 @@ for i, prompt in enumerate(test_prompts):
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt},
     ]
-    input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to(model.device)
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    input_ids = tokenizer(text, return_tensors="pt").input_ids.to(model.device)
     output = model.generate(
         input_ids, max_new_tokens=512, temperature=0.7, do_sample=True,
         tokenizer=tokenizer, stop_strings=["</answer>"],
