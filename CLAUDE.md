@@ -23,8 +23,13 @@ Produces a JSONL file with prompt + reasoning-augmented answer pairs using an In
 # Supervised Fine-Tuning
 python train_sft.py configs/sft_maze.yaml
 
-# GRPO (RL training)
+# GRPO (RL training) — single GPU
 python train_grpo.py configs/config_battleship.yaml
+
+# GRPO — multi-GPU DDP (e.g. 8 GPUs)
+torchrun --nproc_per_node=8 train_grpo.py configs/config_battleship.yaml
+# or equivalently:
+accelerate launch --num_processes=8 train_grpo.py configs/config_battleship.yaml
 
 # GRPO with latent thoughts (Coconut-style)
 python train_grpo_latent.py configs/train_latent_gsm8k.yaml
@@ -59,10 +64,15 @@ External dependencies per environment:
 
 ### Training Scripts
 - `train_sft.py` — uses HF `SFTTrainer`; loads JSONL data, trains on full `<think>...<answer>` responses
-- `train_grpo.py` — uses TRL `GRPOTrainer`; passes environment's reward functions directly as `reward_funcs`
+- `train_grpo.py` — uses TRL `GRPOTrainer`; passes environment's reward functions directly as `reward_funcs`; supports single-GPU and multi-GPU DDP via `torchrun`/`accelerate launch`
 - `train_grpo_latent.py` — same GRPO loop but with the custom `LatentQwen2ForCausalLM` model
 
 All training scripts load hyperparameters from YAML configs.
+
+#### DDP notes for `train_grpo.py`
+- Model is loaded **without `device_map`** — Accelerate assigns each process to its GPU. The `device_map` field in YAML configs is intentionally ignored.
+- `GRPOConfig` sets `ddp_find_unused_parameters=False` to prevent hangs when embedding layers receive no gradient on some steps.
+- Effective batch size scales with GPU count: `per_device_train_batch_size × num_gpus × gradient_accumulation_steps`. Reduce `gradient_accumulation_steps` proportionally when scaling up GPUs.
 
 ### Latent Thought Model (`latent_qwen.py`)
 `LatentQwen2ForCausalLM` extends `Qwen2ForCausalLM` to implement Coconut-style latent reasoning:
@@ -82,3 +92,13 @@ All experiments are driven by YAML configs in `configs/`. Key fields shared acro
 
 ### Reward Functions (GRPO)
 Each environment's `get_reward_functions()` returns a list of reward functions composed additively. Typical pattern: one function rewards correct format (`<think>` + `<answer>` tags present), another rewards correctness of the extracted answer content.
+
+## Skills
+
+User-invocable Claude Code skills available in this repo:
+
+| Skill | Trigger | Purpose |
+|---|---|---|
+| `/push` | `/push` | Prompt optimization skill — use when iterating on system/user prompts for GRPO reward shaping or data generation |
+
+To invoke a skill: type `/skill-name` in the Claude Code chat.
