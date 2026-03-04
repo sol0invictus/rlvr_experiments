@@ -13,7 +13,7 @@
 # ============================================================================
 
 model:
-  name_or_path: results/qwen3_sft_warmup
+  name_or_path: /home/rlvr_experiments/outputs/sft_qwen_1.5b
   torch_dtype: bfloat16
   device_map: auto
 
@@ -23,8 +23,8 @@ environment:
   task_name: countdown
   samples: 5000
   task_params:
-    min_numbers: 4
-    max_numbers: 5
+    min_numbers: 2
+    max_numbers: 3
     min_target: 50
     max_target: 200
 
@@ -33,7 +33,7 @@ seed: 42
 # --- Training ---
 training:
   output_dir: results/grpo_qwen3_countdown
-  learning_rate: 5.0e-6
+  learning_rate: 1.0e-6
   per_device_train_batch_size: 1   # 1 prompt per micro-batch (default 8 is way too much)
   gradient_accumulation_steps: 4   # Effective batch = 4 prompts per step
   num_train_epochs: 2
@@ -44,15 +44,17 @@ training:
   save_total_limit: 3         # Auto-delete old checkpoints, keep only last 3
   max_steps: 500
   report_to: ["tensorboard"]  # TensorBoard logging
-  warmup_ratio: 0.05         # 25 warmup steps for stable early training
+  warmup_ratio: 0.1         # 25 warmup steps for stable early training
+  max_grad_norm: 0.1       # Gradient clipping for stability
+  kl_coeff: 0.1             # KL penalty coefficient to prevent divergence from SFT model
 
 # --- Generation (GRPO rollouts) ---
 generation:
-  max_completion_length: 1024
-  num_generations: 4       # Reduced from 8 to fit 4B model on A100
+  max_completion_length: 2048
+  num_generations: 8      # Reduced from 8 to fit 4B model on A100
   max_prompt_length: 512
   temperature: 0.7
 
 # --- System Prompt ---
 system_prompt: |
-  You are a helpful assistant. Think step by step inside <think>...</think> tags, then provide your final answer inside <answer>...</answer> tags.
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
