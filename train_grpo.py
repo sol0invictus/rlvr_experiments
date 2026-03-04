@@ -1,11 +1,13 @@
 import sys
 import argparse
+import os
 import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
 from environments.gsm8k import GSM8KEnvironment
 from environments.reasoning_gym_env import ReasoningGymEnvironment
+from callbacks.generation_logger import GenerationLoggingCallback
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -70,6 +72,22 @@ def main():
     
     # Reward Functions
     reward_funcs = env.get_reward_functions()
+
+    # Generation logging callback (optional)
+    gen_log_conf = config.get('generation_logging', {})
+    generation_logging_callback = None
+    if gen_log_conf.get('enabled', False):
+        log_dir = gen_log_conf.get(
+            'log_dir',
+            os.path.join(config['training']['output_dir'], 'generations'),
+        )
+        generation_logging_callback = GenerationLoggingCallback(
+            log_dir=log_dir,
+            every_n_steps=gen_log_conf.get('every_n_steps', 10),
+            print_n_examples=gen_log_conf.get('print_n_examples', 2),
+        )
+        reward_funcs = generation_logging_callback.wrap_reward_funcs(reward_funcs)
+        print(f"[GenerationLogger] enabled — saving to {log_dir}")
     
     # Load Model
     # NOTE: device_map must NOT be set for DDP — Accelerate places each replica
@@ -130,12 +148,14 @@ def main():
 
     # Trainer
     print("Initializing GRPOTrainer...")
+    extra_callbacks = [generation_logging_callback] if generation_logging_callback else []
     trainer = GRPOTrainer(
         model=model,
         reward_funcs=reward_funcs,
         args=training_args,
         train_dataset=dataset,
         processing_class=tokenizer,
+        callbacks=extra_callbacks,
     )
 
     # Patch trainer's generate to inject tokenizer for stop_strings support
