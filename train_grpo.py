@@ -94,10 +94,19 @@ def main():
     # on its assigned GPU. Using device_map='auto' would enable pipeline/tensor
     # parallelism and break DDP.  Ignoring any device_map from the config here.
     model_path = config['model']['name_or_path']
+    model_conf = config['model']
     print(f"Loading model: {model_path}")
+
+    # Flash attention: set attn_implementation="flash_attention_2" in model config
+    # to enable. Requires flash-attn package and a supported GPU (Ampere+).
+    attn_implementation = model_conf.get('attn_implementation', None)
+    if attn_implementation:
+        print(f"  attn_implementation: {attn_implementation}")
+
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype=config['model'].get('torch_dtype', 'auto'),
+        **({"attn_implementation": attn_implementation} if attn_implementation else {}),
     )
     
     # Load tokenizer (needed for stop_strings and reward decoding)
@@ -115,23 +124,33 @@ def main():
     print("Configuring training arguments...")
     training_conf = config['training']
     gen_conf = config.get('generation', {})
-    
+
     # Allow CLI override of max_steps (for smoke testing)
     max_steps = args.max_steps if args.max_steps is not None else training_conf.get('max_steps', -1)
-    
+
+    num_generations = gen_conf.get('num_generations', 4)
+    per_device_train_batch_size = training_conf.get('per_device_train_batch_size', 1)
+
+    # generation_batch_size = num_generations * per_device_train_batch_size ensures
+    # all rollouts for a micro-batch are produced in a single forward pass, avoiding
+    # chunked generation that would interleave KV-cache evictions and reloads.
+    generation_batch_size = num_generations * per_device_train_batch_size
+    print(f"  generation_batch_size: {generation_batch_size} "
+          f"(num_generations={num_generations} × per_device_bs={per_device_train_batch_size})")
+
     training_args = GRPOConfig(
         output_dir=training_conf['output_dir'],
         learning_rate=float(training_conf['learning_rate']),
         loss_type=training_conf.get('loss_type', 'grpo'),
         beta=training_conf.get('beta', 0.04),
         remove_unused_columns=False,
-        per_device_train_batch_size=training_conf.get('per_device_train_batch_size', 1),
+        per_device_train_batch_size=per_device_train_batch_size,
         gradient_accumulation_steps=training_conf.get('gradient_accumulation_steps', 1),
         num_train_epochs=training_conf.get('num_train_epochs', 1),
         bf16=training_conf.get('bf16', False),
         max_completion_length=gen_conf.get('max_completion_length', 1024),
-        num_generations=gen_conf.get('num_generations', 4),
-        generation_batch_size=gen_conf.get('num_generations', 4),
+        num_generations=num_generations,
+        generation_batch_size=generation_batch_size,
         temperature=gen_conf.get('temperature', 0.7),
         report_to=training_conf.get('report_to', []),
         logging_steps=training_conf.get('logging_steps', 10),
@@ -141,6 +160,10 @@ def main():
         save_total_limit=training_conf.get('save_total_limit', None),
         max_steps=max_steps,
         warmup_steps=training_conf.get('warmup_steps', 0),
+        max_grad_norm=training_conf.get('max_grad_norm', 1.0),
+        lr_scheduler_type=training_conf.get('lr_scheduler_type', 'cosine'),
+        gradient_checkpointing=training_conf.get('gradient_checkpointing', False),
+        dataloader_num_workers=training_conf.get('dataloader_num_workers', 4),
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
