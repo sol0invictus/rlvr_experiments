@@ -1,0 +1,39 @@
+# ============================================================================
+# Evaluation config — Countdown (reasoning-gym)
+#
+# Usage:
+#   python evaluate.py configs/eval_countdown.yaml
+#   python evaluate.py configs/eval_countdown.yaml --model outputs/grpo_qwen3_countdown/checkpoint-300
+#   python evaluate.py configs/eval_countdown.yaml --samples 100
+# ============================================================================
+
+model:
+  name_or_path: /home/rlvr_experiments/results/grpo_qwen3_countdown #/home/rlvr_experiments/outputs/sft_qwen_1.5b
+  torch_dtype: bfloat16
+
+# Same `environment:` block format as training configs.
+# num_samples is overridden by evaluation.num_samples below.
+environment:
+  name: reasoning_gym
+  task_name: countdown
+  samples: 200          # overridden by evaluation.num_samples if set
+  task_params:
+    min_numbers: 2
+    max_numbers: 3
+    min_target: 20
+    max_target: 80
+
+evaluation:
+  num_samples: 200
+  seed: 123             # different seed from training to get held-out samples
+
+# Generation settings
+generation:
+  max_new_tokens: 1024
+  temperature: 0.0      # greedy for deterministic eval
+
+# Must match what was used during training
+system_prompt: |
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+output_dir: outputs/evaluation/countdown

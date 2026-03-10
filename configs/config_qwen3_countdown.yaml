@@ -25,32 +25,37 @@ environment:
   task_params:
     min_numbers: 2
     max_numbers: 3
-    min_target: 50
-    max_target: 200
+    min_target: 20
+    max_target: 80
 
 seed: 42
 
 # --- Training ---
 training:
   output_dir: results/grpo_qwen3_countdown
-  learning_rate: 1.0e-6
+  learning_rate: 1.0e-5
   per_device_train_batch_size: 1   # 1 prompt per micro-batch (default 8 is way too much)
   gradient_accumulation_steps: 4   # Effective batch = 4 prompts per step
   num_train_epochs: 2
   bf16: true
-  logging_steps: 1          # Log every step for detailed reward curves
+  logging_steps: 5          # Log every step for detailed reward curves
   save_strategy: steps
   save_steps: 25             # Checkpoint every 25 steps (~50 min) for resume safety
   save_total_limit: 3         # Auto-delete old checkpoints, keep only last 3
-  max_steps: 500
+  max_steps: 300
   report_to: ["tensorboard"]  # TensorBoard logging
-  warmup_ratio: 0.1         # 25 warmup steps for stable early training
-  max_grad_norm: 0.1       # Gradient clipping for stability
+  warmup_ratio: 0.0         # 25 warmup steps for stable early training
+  max_grad_norm: 0.5       # Gradient clipping for stability
   kl_coeff: 0.1             # KL penalty coefficient to prevent divergence from SFT model
+  loss_type: "dr_grpo"   # Use DR-GRPO loss for better credit assignment
+  beta: 0.0              # Balance between reward and KL in DR-GRPO loss
+  mask_truncated_completions: true  # Mask rewards for truncated generations to avoid noisy signals
+
+
 
 # --- Generation (GRPO rollouts) ---
 generation:
-  max_completion_length: 2048
+  max_completion_length: 1024
   num_generations: 8      # Reduced from 8 to fit 4B model on A100
   max_prompt_length: 512
   temperature: 0.7
@@ -58,3 +63,9 @@ generation:
 # --- System Prompt ---
 system_prompt: |
   You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+generation_logging:
+  enabled: true               # set to true to enable generation logging
+  log_dir: runs/generations  # defaults to <output_dir>/generations
+  every_n_steps: 10            # save a JSONL file every N training steps
+  print_n_examples: 2          # number of examples to print to stdout per flush

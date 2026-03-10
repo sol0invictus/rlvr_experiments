@@ -88,7 +88,6 @@ class ReasoningGymEnvironment:
         """Return list of reward functions for GRPO."""
         return [
             self.correctness_reward,
-            self.format_reward,
         ]
     
     # ------------------------------------------------------------------
@@ -183,34 +182,12 @@ class ReasoningGymEnvironment:
     
     def _extract_answer(self, text: str) -> Optional[str]:
         """
-        Extract answer from model response.
-        
-        Priority order:
-        1. <answer>...</answer> tags (DeepSeek-R1 format)
-        2. #### marker (GSM8K format)
-        3. Last non-empty line (fallback)
+        Extract answer from <answer>...</answer> tags only.
+        Returns None if tags are not present or empty.
         """
-        # 1. Try <answer> tags
         match = re.search(r'<answer>(.*?)</answer>', text, re.DOTALL)
         if match:
-            return match.group(1).strip()
-        
-        # 2. Try #### marker
-        if '####' in text:
-            parts = text.split('####')
-            if len(parts) > 1:
-                answer = parts[-1].strip()
-                # Take first line of answer (in case of trailing text)
-                answer = answer.split('\n')[0].strip()
-                return answer
-        
-        # 3. Fallback: last non-empty line
-        lines = text.strip().split('\n')
-        for line in reversed(lines):
-            line = line.strip()
-            if line and not line.startswith('<'):  # skip stray tags
-                return line
-        
+            return match.group(1).strip() or None
         return None
     
     # ------------------------------------------------------------------
@@ -222,35 +199,41 @@ class ReasoningGymEnvironment:
     ) -> float:
         """
         Verify countdown answer by evaluating the expression.
-        
-        The answer should be an arithmetic expression that equals the target.
+
+        Checks two things:
+        1. The numbers used in the expression exactly match the allowed numbers
+           from the problem (no extras, no omissions).
+        2. The expression evaluates to the target value.
         """
-        # Get target from metadata if available
+        cleaned = extracted.strip()
+
+        # Safety: only allow digits, operators, parens, spaces, decimals
+        if not re.match(r'^[\d\s\+\-\*\/\(\)\.]+$', cleaned):
+            return 0.0
+
         target = None
+        allowed_numbers = None
         if isinstance(metadata, dict):
             target = metadata.get('target')
-        
-        # Try evaluating the expression
+            allowed_numbers = metadata.get('numbers')  # e.g. [95, 4]
+
+        # 1. Check numbers used in expression match allowed numbers exactly
+        if allowed_numbers is not None:
+            used = sorted(float(n) for n in re.findall(r'\d+\.?\d*', cleaned))
+            allowed = sorted(float(x) for x in allowed_numbers)
+            if used != allowed:
+                return 0.0
+
+        # 2. Check expression evaluates to target
         try:
-            # Safety: only allow digits, operators, parens, spaces
-            cleaned = extracted.strip()
-            if re.match(r'^[\d\s\+\-\*\/\(\)\.]+$', cleaned):
-                result = eval(cleaned)
-                if target is not None and result == target:
-                    return 1.0
-                # Fallback: if no target in metadata, compare to truth expression
-                if target is None:
-                    truth_result = eval(truth)
-                    if result == truth_result:
-                        return 1.0
+            result = eval(cleaned)  # safe: only arithmetic chars allowed above
+            if target is not None:
+                return 1.0 if abs(result - target) < 1e-6 else 0.0
+            # No target in metadata — fall back to comparing with truth expression
+            truth_result = eval(truth)
+            return 1.0 if abs(result - truth_result) < 1e-6 else 0.0
         except Exception:
-            pass
-        
-        # Fallback: exact string match with truth
-        if self._normalize_answer(extracted) == self._normalize_answer(truth):
-            return 1.0
-        
-        return 0.0
+            return 0.0
     
     def _verify_generic(self, extracted: str, truth: str) -> float:
         """
