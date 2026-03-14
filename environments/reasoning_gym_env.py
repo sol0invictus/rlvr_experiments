@@ -42,6 +42,10 @@ class ReasoningGymEnvironment:
         self.task_name = self.env_config.get('task_name', 'countdown')
         self.num_samples = self.env_config.get('samples', 5000)
         self.task_params = self.env_config.get('task_params', {})
+        # Length penalty flags
+        self.use_length_penalty = self.env_config.get('length_penalty', False)
+        self.length_penalty_weight = self.env_config.get('length_penalty_weight', 0.1)
+        self.length_penalty_max_chars = self.env_config.get('length_penalty_max_chars', 4096)
         
     def get_dataset(self, config: Dict[str, Any]) -> Dataset:
         """Generate dataset with prompts and ground truth answers."""
@@ -86,9 +90,10 @@ class ReasoningGymEnvironment:
     
     def get_reward_functions(self) -> List[Callable]:
         """Return list of reward functions for GRPO."""
-        return [
-            self.correctness_reward,
-        ]
+        fns = [self.correctness_reward]
+        if self.use_length_penalty:
+            fns.append(self.length_penalty_reward)
+        return fns
     
     # ------------------------------------------------------------------
     # Reward functions
@@ -130,6 +135,54 @@ class ReasoningGymEnvironment:
         
         return rewards
     
+    def length_penalty_reward(
+        self,
+        completions,
+        ground_truth,
+        **kwargs
+    ) -> List[float]:
+        """
+        Length penalty applied only to correct answers.
+
+        Penalizes verbosity to encourage concise reasoning:
+            penalty = -weight * min(1.0, len(completion) / max_chars)
+
+        Returns 0.0 for incorrect answers (no gradient signal on wrong answers).
+
+        Config keys (under `environment:`):
+            length_penalty: true          # enable this reward function
+            length_penalty_weight: 0.1    # max penalty magnitude (default 0.1)
+            length_penalty_max_chars: 4096  # completion length at which penalty is maximised
+        """
+        rewards = []
+        metadata_list = kwargs.get('metadata', [None] * len(completions))
+
+        for i, (completion, truth) in enumerate(zip(completions, ground_truth)):
+            completion = self._unwrap_completion(completion)
+            extracted = self._extract_answer(completion)
+
+            if extracted is None:
+                rewards.append(0.0)
+                continue
+
+            metadata = metadata_list[i] if i < len(metadata_list) else None
+
+            # Check correctness using existing task-specific logic
+            if self.task_name == 'countdown':
+                is_correct = self._verify_countdown(extracted, truth, metadata) > 0.5
+            else:
+                is_correct = self._verify_generic(extracted, truth) > 0.5
+
+            if not is_correct:
+                rewards.append(0.0)
+                continue
+
+            # Apply penalty proportional to completion length
+            ratio = min(1.0, len(completion) / max(1, self.length_penalty_max_chars))
+            rewards.append(-self.length_penalty_weight * ratio)
+
+        return rewards
+
     def format_reward(
         self,
         completions,
