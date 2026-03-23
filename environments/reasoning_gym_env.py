@@ -101,6 +101,42 @@ class ReasoningGymEnvironment:
         
         return Dataset.from_list(all_data)
     
+    def get_val_dataset(self, config: Dict[str, Any]):
+        """Generate a small held-out validation set with a different seed."""
+        if not REASONING_GYM_AVAILABLE:
+            raise ImportError("reasoning-gym required. Install with: pip install reasoning-gym")
+
+        val_conf = config.get('validation', {})
+        num_samples = val_conf.get('num_samples', 64)
+        val_seed = val_conf.get('val_seed', 9999)
+
+        print(f"Generating {num_samples} validation samples for '{self.task_name}' (seed={val_seed})...")
+        try:
+            dataset = reasoning_gym.create_dataset(
+                self.task_name,
+                size=num_samples,
+                seed=val_seed,
+                **self.task_params,
+            )
+        except TypeError:
+            dataset = reasoning_gym.create_dataset(
+                self.task_name,
+                size=num_samples,
+                seed=val_seed,
+            )
+
+        all_data = []
+        for item in dataset:
+            all_data.append({
+                "prompt": [{"role": "user", "content": item['question']}],
+                "ground_truth": str(item['answer']),
+                "task": self.task_name,
+                "metadata": item.get('metadata', {}),
+            })
+
+        print(f"  Validation set: {len(all_data)} samples")
+        return Dataset.from_list(all_data)
+
     def get_reward_functions(self) -> List[Callable]:
         """
         Return list of reward functions for GRPO.

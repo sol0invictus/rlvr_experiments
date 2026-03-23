@@ -23,3 +23,10 @@ class BaseEnvironment(ABC):
         Returns the system prompt to be used for this environment.
         """
         pass
+
+    def get_val_dataset(self, config):
+        """
+        Optional: returns a held-out validation Dataset, or None if the
+        environment does not support it.  Override in subclasses.
+        """
+        return None

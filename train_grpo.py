@@ -8,6 +8,7 @@ from trl import GRPOConfig, GRPOTrainer
 from environments.gsm8k import GSM8KEnvironment
 from environments.reasoning_gym_env import ReasoningGymEnvironment
 from callbacks.generation_logger import GenerationLoggingCallback
+from callbacks.validation_callback import ValidationCallback
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -70,6 +71,16 @@ def main():
             return example
         dataset = dataset.map(add_system_prompt)
     
+    # Validation dataset (optional)
+    val_conf = config.get('validation', {})
+    val_dataset = None
+    if val_conf.get('enabled', False):
+        val_dataset = env.get_val_dataset(config)
+        if val_dataset is not None:
+            print(f"[Validation] dataset ready: {len(val_dataset)} samples")
+        else:
+            print("[Validation] environment does not support get_val_dataset — skipping.")
+
     # Reward Functions
     reward_funcs = env.get_reward_functions()
 
@@ -169,9 +180,33 @@ def main():
         ddp_find_unused_parameters=False,
     )
 
+    # Validation callback (optional)
+    validation_callback = None
+    if val_dataset is not None:
+        val_log_dir = val_conf.get(
+            'log_dir',
+            os.path.join(training_conf['output_dir'], 'validation'),
+        )
+        validation_callback = ValidationCallback(
+            val_dataset=val_dataset,
+            reward_funcs=env.get_reward_functions(),
+            tokenizer=tokenizer,
+            eval_steps=val_conf.get('eval_steps', 100),
+            num_samples=val_conf.get('num_samples', 64),
+            max_new_tokens=gen_conf.get('max_completion_length', 512),
+            log_dir=val_log_dir,
+            temperature=val_conf.get('temperature', 0.0),
+        )
+        print(
+            f"[Validation] callback ready — every {val_conf.get('eval_steps', 100)} steps, "
+            f"{val_conf.get('num_samples', 64)} samples, logs → {val_log_dir}"
+        )
+
     # Trainer
     print("Initializing GRPOTrainer...")
-    extra_callbacks = [generation_logging_callback] if generation_logging_callback else []
+    extra_callbacks = [
+        cb for cb in [generation_logging_callback, validation_callback] if cb is not None
+    ]
     trainer = GRPOTrainer(
         model=model,
         reward_funcs=reward_funcs,
