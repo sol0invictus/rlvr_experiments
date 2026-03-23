@@ -42,6 +42,20 @@ class ReasoningGymEnvironment:
         self.task_name = self.env_config.get('task_name', 'countdown')
         self.num_samples = self.env_config.get('samples', 5000)
         self.task_params = self.env_config.get('task_params', {})
+
+        # Length penalty: enabled=(self.length_penalty_enabled)
+        self.length_penalty_enabled = (
+            self.env_config.get('length_penalty', False)
+        )
+        self.max_rollout_length = (
+            self.env_config.get('max_rollout_length')
+            or self.task_params.pop('max_rollout_length', 4096)
+        )
+        # Approximate chars-per-token ratio for converting token budget to char budget
+        self.chars_per_token = (
+            self.env_config.get('chars_per_token')
+            or self.task_params.pop('chars_per_token', 4)
+        )
         
     def get_dataset(self, config: Dict[str, Any]) -> Dataset:
         """Generate dataset with prompts and ground truth answers."""
@@ -50,6 +64,9 @@ class ReasoningGymEnvironment:
         
         seed = config.get('seed', 42)
         
+        print(f"  Length penalty: enabled={self.length_penalty_enabled}, "
+              f"max_rollout_length={self.max_rollout_length}, "
+              f"chars_per_token={self.chars_per_token}")
         print(f"Generating {self.num_samples} samples for '{self.task_name}'...")
         print(f"  Task params: {self.task_params}")
         
@@ -85,10 +102,19 @@ class ReasoningGymEnvironment:
         return Dataset.from_list(all_data)
     
     def get_reward_functions(self) -> List[Callable]:
-        """Return list of reward functions for GRPO."""
-        return [
+        """
+        Return list of reward functions for GRPO.
+
+        Multi-reward approach — each function returns [0, 1] per completion.
+        Use GRPO's ``reward_weights`` config to control relative importance.
+        Example weights: [1.0, 0.5, 0.3] for correctness, format, length.
+        """
+        fns = [
             self.correctness_reward,
         ]
+        if self.length_penalty_enabled:
+            fns.append(self.length_penalty_reward)
+        return fns
     
     # ------------------------------------------------------------------
     # Reward functions
@@ -130,6 +156,43 @@ class ReasoningGymEnvironment:
         
         return rewards
     
+    def length_penalty_reward(
+        self,
+        completions,
+        ground_truth,
+        **kwargs
+    ) -> List[float]:
+        """
+        Reward that encourages concise completions — #only for correct answers#.
+
+        For incorrect answers, the reward is 0.0 (no length signal), so the
+        model is never rewarded for being short-but-wrong.
+
+        For correct answers, returns a score in [0, 1]:
+        - 1.0 for a zero-length completion
+        - 0.0 when the completion reaches (or exceeds) max_rollout_length tokens
+        - Linear interpolation in between
+
+        The token count is approximated from character count using
+        ``chars_per_token`` (default 4). The GRPO ``reward_weights``
+        config controls how much this signal matters relative to correctness.
+
+        Formula (correct only):  score = max(0, 1 - len(text) / (max_rollout_length * chars_per_token))
+        """
+        max_chars = self.max_rollout_length * self.chars_per_token
+        is_correct = self.correctness_reward(completions, ground_truth, **kwargs)
+
+        rewards = []
+        for completion, correct in zip(completions, is_correct):
+            if correct < 0.5:
+                # Wrong answer: no length signal
+                rewards.append(0.0)
+            else:
+                text = self._unwrap_completion(completion)
+                score = max(0.0, 1.0 - len(text) / max_chars)
+                rewards.append(round(score, 4))
+        return rewards
+
     def format_reward(
         self,
         completions,
