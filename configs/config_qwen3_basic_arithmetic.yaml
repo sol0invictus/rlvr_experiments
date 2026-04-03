@@ -1,0 +1,70 @@
+# ============================================================================
+# GRPO Training: Basic Arithmetic task on Qwen3-1.5B (SFT-warmed)
+# ============================================================================
+# Usage: python train_grpo.py configs/config_qwen3_basic_arithmetic.yaml
+#
+# Prerequisites:
+#   1. python data_gen/generate_sft_warmup.py
+#   2. python train_sft.py configs/config_qwen3_sft_warmup.yaml
+#   3. python test_grpo.py configs/config_qwen3_basic_arithmetic.yaml  (smoke test)
+#
+# Designed for a single A100 (80GB). 300 steps ~10-15 hours.
+# Monitor: tensorboard --logdir results/grpo_qwen3_basic_arithmetic
+# ============================================================================
+
+model:
+  name_or_path: /home/rlvr_experiments/outputs/sft_qwen_1.5b
+  torch_dtype: bfloat16
+  device_map: auto
+
+# --- Reasoning Gym Environment ---
+environment:
+  name: reasoning_gym
+  task_name: basic_arithmetic
+  samples: 5000
+  length_penalty: true
+  max_rollout_length: 2048
+
+seed: 42
+
+# --- Training ---
+training:
+  output_dir: results/grpo_qwen3_basic_arithmetic
+  learning_rate: 5.0e-6
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 1
+  num_train_epochs: 2
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 25
+  save_total_limit: 3
+  max_steps: 300
+  report_to: ["tensorboard"]
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  kl_coeff: 0.0
+  loss_type: "dapo"
+  beta: 0.0
+  mask_truncated_completions: true
+  epsilon_high: 5.0
+  lr_scheduler_type: const
+
+# --- Generation (GRPO rollouts) ---
+generation:
+  max_completion_length: 1024
+  num_generations: 8      # Reduced from 8 to fit 4B model on A100
+  generation_batch_size: 8
+  max_prompt_length: 512
+  temperature: 1.0
+  stop_strings: ["</answer>"]  # Stop generation at end of answer tag
+
+# --- System Prompt ---
+system_prompt: |
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+generation_logging:
+  enabled: true
+  log_dir: runs/generations
+  every_n_steps: 20
+  print_n_examples: 20

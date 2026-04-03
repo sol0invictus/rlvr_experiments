@@ -13,7 +13,7 @@
 # ============================================================================
 
 model:
-  name_or_path: results/qwen3_sft_warmup
+  name_or_path: /home/rlvr_experiments/outputs/sft_qwen_1.5b
   torch_dtype: bfloat16
   device_map: auto
 
@@ -22,11 +22,14 @@ environment:
   name: reasoning_gym
   task_name: countdown
   samples: 5000
+  length_penalty: true
+  max_rollout_length: 2048
   task_params:
-    min_numbers: 4
+    min_numbers: 5
     max_numbers: 5
     min_target: 50
-    max_target: 200
+    max_target: 300
+
 
 seed: 42
 
@@ -35,24 +38,41 @@ training:
   output_dir: results/grpo_qwen3_countdown
   learning_rate: 5.0e-6
   per_device_train_batch_size: 1   # 1 prompt per micro-batch (default 8 is way too much)
-  gradient_accumulation_steps: 4   # Effective batch = 4 prompts per step
+  gradient_accumulation_steps: 1   # Effective batch = 4 prompts per step
   num_train_epochs: 2
   bf16: true
-  logging_steps: 1          # Log every step for detailed reward curves
+  logging_steps: 1           # Log every step for detailed reward curves
   save_strategy: steps
   save_steps: 25             # Checkpoint every 25 steps (~50 min) for resume safety
   save_total_limit: 3         # Auto-delete old checkpoints, keep only last 3
-  max_steps: 500
+  max_steps: 300
   report_to: ["tensorboard"]  # TensorBoard logging
-  warmup_ratio: 0.05         # 25 warmup steps for stable early training
+  warmup_ratio: 0.1        # 25 warmup steps for stable early training
+  max_grad_norm: 1.0       # Gradient clipping for stability
+  kl_coeff: 0.0             # KL penalty coefficient to prevent divergence from SFT model
+  loss_type: "dapo"   # Use DR-GRPO loss for better credit assignment
+  beta: 0.0              # Balance between reward and KL in DR-GRPO loss
+  mask_truncated_completions: true  # Mask rewards for truncated generations to avoid noisy signals
+  epsilon_high: 5.0
+  lr_scheduler_type: const
+
+
 
 # --- Generation (GRPO rollouts) ---
 generation:
   max_completion_length: 1024
-  num_generations: 4       # Reduced from 8 to fit 4B model on A100
+  num_generations: 8      # Reduced from 8 to fit 4B model on A100
+  generation_batch_size: 8
   max_prompt_length: 512
-  temperature: 0.7
+  temperature: 1.0
+  stop_strings: ["</answer>"]  # Stop generation at end of answer tag
 
 # --- System Prompt ---
 system_prompt: |
-  You are a helpful assistant. Think step by step inside <think>...</think> tags, then provide your final answer inside <answer>...</answer> tags.
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+generation_logging:
+  enabled: true               # set to true to enable generation logging
+  log_dir: runs/generations  # defaults to <output_dir>/generations
+  every_n_steps: 20            # save a JSONL file every N training steps
+  print_n_examples: 20          # number of examples to print to stdout per flush

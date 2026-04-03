@@ -77,5 +77,20 @@ class GSM8KEnvironment(BaseEnvironment):
                 
         return rewards
 
+    def get_val_dataset(self, config):
+        """Load the GSM8K test split as a validation set."""
+        print(f"Loading validation dataset (test split): {config['data']['dataset_name']}")
+        dataset = load_dataset(
+            config['data']['dataset_name'],
+            config['data'].get('subset', None),
+            split='test',
+        )
+        num_samples = config.get('validation', {}).get('num_samples', 64)
+        if num_samples and num_samples < len(dataset):
+            dataset = dataset.select(range(num_samples))
+        dataset = dataset.map(lambda x: self.make_conversation(x))
+        print(f"  Validation set: {len(dataset)} samples")
+        return dataset
+
     def get_reward_functions(self):
         return [self.format_reward, self.accuracy_reward]
