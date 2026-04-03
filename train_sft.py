@@ -71,7 +71,6 @@ def main():
         save_strategy=train_args_conf.get('save_strategy', 'steps'),
         save_steps=train_args_conf.get('save_steps', 50),
         report_to=train_args_conf.get('report_to', []),
-        max_seq_length=train_args_conf.get('max_seq_length', 1024),
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
@@ -95,6 +94,7 @@ def main():
         train_dataset=dataset,
         args=training_args,
         processing_class=tokenizer,
+        max_seq_length=train_args_conf.get('max_seq_length', 1024),
     )
 
     print("Starting SFT...")
