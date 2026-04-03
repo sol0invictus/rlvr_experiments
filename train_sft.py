@@ -94,7 +94,6 @@ def main():
         train_dataset=dataset,
         args=training_args,
         processing_class=tokenizer,
-        max_seq_length=train_args_conf.get('max_seq_length', 1024),
     )
 
     print("Starting SFT...")
