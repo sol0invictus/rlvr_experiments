@@ -42,7 +42,7 @@ training:
   beta: 0.0
   mask_truncated_completions: true
   epsilon_high: 5.0
-  lr_scheduler_type: const
+  lr_scheduler_type: constant
 
 generation:
   max_completion_length: 1024
