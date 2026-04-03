@@ -121,16 +121,10 @@ def main():
         **({"attn_implementation": attn_implementation} if attn_implementation else {}),
     )
     
-    # Load tokenizer (needed for stop_strings and reward decoding)
+    # Load tokenizer (needed for reward decoding)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    
-    # Configure stop_strings on model's generation_config
-    # This makes HF generate() stop as soon as </answer> is produced
-    stop_strings = config.get('generation', {}).get('stop_strings', ['</answer>'])
-    model.generation_config.stop_strings = stop_strings
-    print(f"  stop_strings: {stop_strings}")
     
     # Training Arguments
     print("Configuring training arguments...")
