@@ -1,24 +1,24 @@
-# RLVR Experiments Dependencies
-# For Lightning AI (A100)
+# ============================================================================
+# Requirements: RLVR Experiments (Colab Pro A100)
+# Confirmed working: TRL 1.0.0 + Transformers 5.0.0 (April 2026)
+# ============================================================================
+# Install: pip install -r requirements.txt
+# ============================================================================
 
-# Core ML
-torch>=2.1.0
-transformers>=4.45.0
-accelerate>=0.25.0
-peft>=0.7.0
-bitsandbytes>=0.41.0
+# Core training
+trl==1.0.0
+transformers==5.0.0
+accelerate>=1.0.0
 
-# Training
-trl>=0.27.0  # >=0.27 required for cispo loss_type; >=0.17 for dr_grpo
+# Reasoning tasks
+reasoning-gym>=0.1.0
 
-# Data
-reasoning-gym
-datasets>=2.14.0
-pandas>=2.0.0
-pyarrow>=14.0.0
+# Data / utilities
+datasets>=3.0.0
+torch>=2.4.0           # pre-installed on Colab A100; leave unversioned for flexibility
 
-# Utils
-pyyaml>=6.0
-tqdm
-math-verify
-tensorboard
+# Math verification (only needed if using GSM8K environment)
+math-verify>=0.9.0
+
+# Optional: faster tokenization
+tokenizers>=0.20.0
