@@ -1,0 +1,32 @@
+# ============================================================================
+# SFT Warmup: Teach Qwen2.5-0.5B-Instruct the <think>/<answer> format
+# ============================================================================
+# Usage:
+#   1. python data_gen/generate_sft_warmup.py   (reuse existing data)
+#   2. python train_sft.py configs/sft_qwen0.5b_warmup.yaml
+#
+# Short warmup (~5 min on A100/T4) to prime the Instruct model with the
+# exact <think>/<answer> output format before GRPO.
+# The Instruct model already follows instructions, so fewer epochs needed
+# vs the Base model (5 → 2).
+# ============================================================================
+
+model:
+  name_or_path: Qwen/Qwen2.5-0.5B-Instruct
+  torch_dtype: bfloat16
+
+sft:
+  output_file: data_gen/data/sft_warmup.jsonl     # reuse existing data
+  output_dir: results/sft_qwen0.5b_warmup
+
+training:
+  output_dir: results/sft_qwen0.5b_warmup
+  learning_rate: 5.0e-5
+  num_train_epochs: 2                              # 5 for Base; 2 for Instruct
+  batch_size: 8                                    # 0.5B fits larger batch
+  gradient_accumulation_steps: 2
+  bf16: true
+  logging_steps: 10
+  save_strategy: epoch
+  save_total_limit: 1
+  report_to: []

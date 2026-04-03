@@ -1,0 +1,62 @@
+# ============================================================================
+# HP Sweep 0.5B — Phase 0a: No SFT warmup baseline
+# ============================================================================
+# Starting directly from Qwen2.5-0.5B-Instruct (no format warmup).
+# Paired with phase0b (with warmup) to isolate the warmup's contribution.
+# ============================================================================
+
+model:
+  name_or_path: Qwen/Qwen2.5-0.5B-Instruct
+  torch_dtype: bfloat16
+  device_map: auto
+
+environment:
+  name: reasoning_gym
+  task_name: countdown
+  samples: 5000
+  task_params:
+    min_numbers: 4
+    max_numbers: 5
+    min_target: 50
+    max_target: 200
+
+seed: 42
+
+training:
+  output_dir: results/hp_sweep_0.5b/phase0_no_warmup
+  loss_type: dapo
+  learning_rate: 5.0e-6
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 4
+  num_train_epochs: 2
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 1
+  max_steps: 200
+  report_to: ["tensorboard"]
+  warmup_steps: 10
+  max_grad_norm: 1.0
+  kl_coeff: 0.0
+  beta: 0.0
+  mask_truncated_completions: true
+  epsilon_high: 5.0
+  lr_scheduler_type: const
+
+generation:
+  max_completion_length: 1024
+  num_generations: 8
+  generation_batch_size: 8
+  max_prompt_length: 512
+  temperature: 1.0
+  stop_strings: ["</answer>"]
+
+system_prompt: |
+  You are a helpful assistant. Think step by step inside <think>...</think> tags, then provide your final answer inside <answer>...</answer> tags.
+
+generation_logging:
+  enabled: true
+  log_dir: runs/hp_sweep_0.5b/generations
+  every_n_steps: 50
+  print_n_examples: 3
