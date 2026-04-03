@@ -5,7 +5,6 @@ import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
-from environments.gsm8k import GSM8KEnvironment
 from environments.reasoning_gym_env import ReasoningGymEnvironment
 from callbacks.generation_logger import GenerationLoggingCallback
 from callbacks.validation_callback import ValidationCallback
@@ -19,12 +18,14 @@ def get_environment(config):
     if not env_config:
         # Fallback for legacy config or direct dataset inference
         if config.get('data', {}).get('dataset_name') == 'openai/gsm8k':
+            from environments.gsm8k import GSM8KEnvironment
             return GSM8KEnvironment(config)
         else:
             raise ValueError("Could not determine environment from config.")
-            
+
     name = env_config.get('name')
     if name == 'gsm8k':
+        from environments.gsm8k import GSM8KEnvironment
         return GSM8KEnvironment(config)
     elif name == 'reasoning_gym':
         return ReasoningGymEnvironment(config)
