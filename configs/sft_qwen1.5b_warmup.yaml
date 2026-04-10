@@ -1,0 +1,27 @@
+# ============================================================================
+# SFT Warmup: Teach Qwen2.5-1.5B-Instruct the <think>/<answer> format
+# ============================================================================
+# Usage:
+#   1. python data_gen/generate_sft_warmup.py   (generates data_gen/data/sft_warmup.jsonl)
+#   2. python train_sft.py configs/sft_qwen1.5b_warmup.yaml
+# ============================================================================
+
+model:
+  name_or_path: Qwen/Qwen2.5-1.5B-Instruct
+  torch_dtype: bfloat16
+
+sft:
+  output_file: data_gen/data/sft_warmup.jsonl
+  output_dir: results/sft_qwen1.5b_warmup
+
+training:
+  output_dir: results/sft_qwen1.5b_warmup
+  learning_rate: 5.0e-5
+  num_train_epochs: 2
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  bf16: true
+  logging_steps: 10
+  save_strategy: epoch
+  save_total_limit: 1
+  report_to: []

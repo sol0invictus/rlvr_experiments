@@ -1,7 +1,7 @@
 # HP Sweep 1.5B — Phase A4: basic_arithmetic, LR = 5e-5  (upper bound probe)
 
 model:
-  name_or_path: Qwen/Qwen2.5-1.5B-Instruct
+  name_or_path: results/sft_qwen1.5b_warmup    # warmed checkpoint — run train_sft.py configs/sft_qwen1.5b_warmup.yaml first
   torch_dtype: bfloat16
   device_map: auto
 

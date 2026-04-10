@@ -147,6 +147,7 @@ class ReasoningGymEnvironment:
         """
         fns = [
             self.correctness_reward,
+            self.format_reward,
         ]
         if self.length_penalty_enabled:
             fns.append(self.length_penalty_reward)
