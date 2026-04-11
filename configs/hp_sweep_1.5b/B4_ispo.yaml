@@ -1,4 +1,4 @@
-# HP Sweep 1.5B — Phase B4: ISPO loss
+# HP Sweep 1.5B — Phase B4: CISPO loss
 # LR=1e-5 (Phase A winner), SFT-warmed checkpoint
 
 model:
@@ -14,8 +14,8 @@ environment:
 seed: 42
 
 training:
-  output_dir: results/hp_sweep_1.5b/B4_ispo
-  loss_type: ispo
+  output_dir: results/hp_sweep_1.5b/B4_cispo
+  loss_type: cispo
   learning_rate: 1.0e-5
   per_device_train_batch_size: 1
   gradient_accumulation_steps: 4
