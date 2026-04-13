@@ -1,0 +1,56 @@
+# HP Sweep 1.5B — Phase D2: kl_coeff=0.01 (light KL regularization)
+# Fixed: DAPO, LR=1e-5, ngen=8, SFT-warmed checkpoint
+
+model:
+  name_or_path: results/sft_qwen1.5b_warmup
+  torch_dtype: bfloat16
+  device_map: auto
+
+environment:
+  name: reasoning_gym
+  task_name: basic_arithmetic
+  samples: 5000
+
+seed: 42
+
+training:
+  output_dir: results/hp_sweep_1.5b/D2_kl001
+  loss_type: dapo
+  learning_rate: 1.0e-5
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 4
+  num_train_epochs: 2
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 1
+  max_steps: 200
+  report_to: ["tensorboard"]
+  warmup_steps: 10
+  max_grad_norm: 1.0
+  kl_coeff: 0.01
+  beta: 0.01
+  mask_truncated_completions: true
+  epsilon_high: 5.0
+  lr_scheduler_type: constant
+
+generation:
+  max_completion_length: 512
+  num_generations: 8
+  generation_batch_size: 8
+  max_prompt_length: 256
+  temperature: 1.0
+
+system_prompt: |
+  You are a math assistant. You MUST use this exact format:
+  <think>
+  [your step-by-step reasoning]
+  </think>
+  <answer>[number only]</answer>
+
+generation_logging:
+  enabled: true
+  log_dir: runs/hp_sweep_1.5b/generations
+  every_n_steps: 50
+  print_n_examples: 3
