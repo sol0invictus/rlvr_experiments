@@ -387,8 +387,11 @@ class ReasoningGymEnvironment:
         # Try to parse as number
         try:
             num = float(answer.replace(',', ''))
+            import math
+            if math.isinf(num) or math.isnan(num):
+                return answer  # treat as string, will never match ground truth
             if num == int(num):
                 return str(int(num))
             return f"{num:.4f}"
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, OverflowError):
             return answer
