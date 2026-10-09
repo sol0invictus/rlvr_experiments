@@ -1,0 +1,26 @@
+# ============================================================================
+# PAPER SECTION : App. D
+# ROLE          : [G/G2] cycle 1: SFT, lr 1e-6 (light, G2 setting)
+# INIT MODEL    : results/phase2_sp/idea_g2/cycle1_grpo
+# TASK          : -
+# LR / STEPS / GENS : 1e-06 / - / -
+# ORIGINAL FILE : configs/phase2_sp_ideas/idea_g/sft_cycle1.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+model:
+  name_or_path: results/phase2_sp/idea_g2/cycle1_grpo
+  torch_dtype: bfloat16
+sft:
+  output_file: results/phase2_sp/idea_g2/sft_data_42.jsonl
+training:
+  output_dir: results/phase2_sp/idea_g2/cycle1_sft
+  learning_rate: 1.0e-06
+  num_train_epochs: 1
+  batch_size: 2
+  gradient_accumulation_steps: 1
+  bf16: true
+  logging_steps: 10
+  save_strategy: epoch
+  save_steps: 9999
+  max_seq_length: 2048
+  report_to: []

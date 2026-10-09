@@ -1,0 +1,59 @@
+# ============================================================================
+# PAPER SECTION : App. A (LR sweep)
+# ROLE          : Single-task GRPO on basic_arithmetic, 7B, lr 1e-6 / 16 gens (v2)
+# INIT MODEL    : /scratch/sunguha/rlvr_experiments/outputs/sft_qwen25_7b
+# TASK          : basic_arithmetic
+# LR / STEPS / GENS : 1e-06 / 300 / 16
+# ORIGINAL FILE : configs/transfer_7b_v2/train_basic_arithmetic.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+environment:
+  length_penalty: true
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 16
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 16
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 20
+  log_dir: results/grpo_qwen25_7b_v2_basic_arithmetic/generations
+  print_n_examples: 10
+model:
+  name_or_path: /scratch/sunguha/rlvr_experiments/outputs/sft_qwen25_7b
+  torch_dtype: bfloat16
+seed: 42
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: 5.0
+  gradient_accumulation_steps: 1
+  kl_coeff: 0.0
+  learning_rate: 1.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: true
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: results/grpo_qwen25_7b_v2_basic_arithmetic
+  per_device_train_batch_size: 1
+  report_to: []
+  save_steps: 300
+  save_strategy: steps
+  save_total_limit: 1
+  warmup_ratio: 0.1

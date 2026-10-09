@@ -1,0 +1,27 @@
+# ============================================================================
+# PAPER SECTION : App. D
+# ROLE          : SFT on L1 atoms, low lr 5e-6
+# INIT MODEL    : /scratch/sunguha/sft_qwen_4.0b_instruct
+# TASK          : -
+# LR / STEPS / GENS : 5e-06 / - / -
+# ORIGINAL FILE : configs/phase2_shortest_path/sft_l1_low_lr.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+model:
+  name_or_path: /scratch/sunguha/sft_qwen_4.0b_instruct
+  torch_dtype: bfloat16
+sft:
+  output_file: results/phase2_sp/sft_l1_data.jsonl
+  output_dir: results/phase2_sp/sft_l1_lowlr
+sft_training:
+  output_dir: results/phase2_sp/sft_l1_lowlr
+  learning_rate: 5.0e-06
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 10
+  batch_size: 4
+  gradient_accumulation_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  report_to: []
+  max_seq_length: 1024

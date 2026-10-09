@@ -1,0 +1,45 @@
+# ============================================================================
+# PAPER SECTION : none
+# ROLE          : Early pilot evaluation config (pre evaluate_transfer.py protocol)
+# INIT MODEL    : /scratch/sunguha/sft_qwen_4.0b_instruct
+# TASK          : countdown
+# LR / STEPS / GENS : None / - / -
+# ORIGINAL FILE : configs/eval/eval_countdown_sft_base.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+# ============================================================================
+# Evaluation config — Countdown: SFT Base Model (Qwen 4B Instruct)
+#
+# Usage:
+#   torchrun --nproc_per_node=8 evaluate.py configs/eval/eval_countdown_sft_base.yaml
+# ============================================================================
+
+model:
+  name_or_path: /scratch/sunguha/sft_qwen_4.0b_instruct
+  torch_dtype: bfloat16
+  attn_implementation: flash_attention_2
+  compile: false
+
+environment:
+  name: reasoning_gym
+  task_name: countdown
+  samples: 500
+  task_params:
+    min_numbers: 4
+    max_numbers: 5
+    min_target: 10
+    max_target: 200
+
+evaluation:
+  num_samples: 500
+  seed: 1653
+
+generation:
+  max_new_tokens: 2048
+  temperature: 0.0
+  batch_size: 4
+
+system_prompt: |
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+output_dir: outputs/evaluation/countdown_sft_base/

@@ -1,0 +1,37 @@
+# ============================================================================
+# PAPER SECTION : none
+# ROLE          : SFT on caesar_cipher, 4B
+# INIT MODEL    : /scratch/sunguha/sft_qwen_4.0b_instruct
+# TASK          : -
+# LR / STEPS / GENS : 2e-05 / - / -
+# ORIGINAL FILE : configs/config_qwen_4b_sft_caesar.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+# ============================================================================
+# SFT Warmup: Caesar Cipher on Qwen 4B Instruct
+# ============================================================================
+# Usage:
+#   torchrun --standalone --nproc_per_node=8 train_sft.py configs/config_qwen_4b_sft_caesar.yaml
+# ============================================================================
+
+model:
+  name_or_path: /scratch/sunguha/sft_qwen_4.0b_instruct
+  torch_dtype: bfloat16
+
+training:
+  output_dir: results/sft_qwen_4b_caesar
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 2
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 5
+  save_strategy: epoch
+  save_total_limit: 2
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  lr_scheduler_type: cosine
+  max_seq_length: 1024
+
+sft:
+  output_file: data_gen/data/caesar_sft.jsonl

@@ -1,0 +1,43 @@
+# ============================================================================
+# PAPER SECTION : Sec. 3 (Tab. 1, 4B)
+# ROLE          : SFT warm-up, 4B. UNVERIFIED: loads Qwen3-4B-Base and writes outputs/sft_qwen3_4b, but downstream runs load /scratch/.../sft_qwen_4.0b_instruct
+# INIT MODEL    : Qwen/Qwen3-4B-Base
+# TASK          : -
+# LR / STEPS / GENS : 2e-05 / - / -
+# ORIGINAL FILE : configs/config_sft_qwen3_4b.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+# ============================================================================
+# SFT Warmup: Qwen3-4B-Base → learn <think>/<answer> format
+# ============================================================================
+# Usage:
+#   1. python data_gen/generate_sft_warmup.py --num_samples 1000
+#   2. python train_sft.py configs/config_sft_qwen3_4b.yaml
+#
+# Trains on task-agnostic warmup data (trivia, unit conversions, letter puzzles,
+# date reasoning, definitions) to teach the base model the structured output
+# format before GRPO training.
+#
+# Designed for 8x B200 (P6) — ~4B params fit comfortably in bf16.
+# ============================================================================
+
+model:
+  name_or_path: "Qwen/Qwen3-4B-Base"
+  torch_dtype: "bfloat16"
+
+sft:
+  output_file: "data_gen/data/sft_warmup.jsonl"
+  output_dir: "outputs/sft_qwen3_4b"
+
+sft_training:
+  output_dir: "outputs/sft_qwen3_4b"
+  learning_rate: 2.0e-5
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 10
+  batch_size: 4
+  gradient_accumulation_steps: 2
+  save_strategy: "epoch"
+  save_steps: 50
+  max_seq_length: 1024
+  report_to: "tensorboard"

@@ -1,0 +1,50 @@
+# ============================================================================
+# PAPER SECTION : none
+# ROLE          : TinyLlama GSM8K
+# INIT MODEL    : TinyLlama/TinyLlama-1.1B-Chat-v1.0
+# TASK          : -
+# LR / STEPS / GENS : 1e-05 / 500 / 4
+# ORIGINAL FILE : configs/config_gsm8k.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+model:
+  name_or_path: TinyLlama/TinyLlama-1.1B-Chat-v1.0
+  torch_dtype: float32
+  device_map: cpu
+
+data:
+  dataset_name: openai/gsm8k
+  subset: main
+  split: train
+  prompt_column: question
+  answer_column: answer
+
+training:
+  output_dir: Qwen2-0.5B-GRPO-General
+  learning_rate: 1.0e-5
+  gradient_accumulation_steps: 16
+  num_train_epochs: 1
+  bf16: false
+  fp16: false
+  logging_steps: 10
+  save_strategy: steps
+  save_steps: 100
+  max_steps: 500
+  report_to:
+    - tensorboard
+
+generation:
+  max_completion_length: 256
+  temperature: 0.7
+  num_generations: 4
+  max_prompt_length: 512
+
+
+system_prompt: |
+  A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>
+
+generation_logging:
+  enabled: false               # set to true to enable generation logging
+  # log_dir: runs/generations  # defaults to <output_dir>/generations
+  every_n_steps: 10            # save a JSONL file every N training steps
+  print_n_examples: 2          # number of examples to print to stdout per flush

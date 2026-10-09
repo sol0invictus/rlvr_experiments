@@ -1,0 +1,85 @@
+# ============================================================================
+# PAPER SECTION : none
+# ROLE          : Early 7B caesar_cipher GRPO. Superseded by transfer_7b/train_caesar_cipher.yaml
+# INIT MODEL    : /scratch/sunguha/models/Qwen2.5-7B-Instruct
+# TASK          : caesar_cipher
+# LR / STEPS / GENS : 5e-06 / 500 / 8
+# ORIGINAL FILE : configs/config_qwen25_7b_caesar_grpo.yaml
+# NOTE          : copy for sharing; body below is unmodified. Scripts still use the original path.
+# ============================================================================
+# ============================================================================
+# GRPO Training: Caesar Cipher on Qwen2.5-7B-Instruct
+# ============================================================================
+# Usage:
+#   torchrun --standalone --nproc_per_node=8 train_grpo.py configs/config_qwen25_7b_caesar_grpo.yaml
+# Hardware: 8x B200 (P6)
+# ============================================================================
+
+model:
+  name_or_path: /scratch/sunguha/models/Qwen2.5-7B-Instruct
+  torch_dtype: bfloat16
+
+# --- Reasoning Gym Environment ---
+environment:
+  name: reasoning_gym
+  task_name: caesar_cipher
+  samples: 5000
+  length_penalty: true
+  max_rollout_length: 2048
+  task_params:
+    min_words: 2
+    max_words: 6
+    min_rotation: 1
+    max_rotation: 5
+
+seed: 42
+
+# --- Training ---
+training:
+  output_dir: results/grpo_qwen25_7b_caesar
+  learning_rate: 5.0e-6
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 1
+  num_train_epochs: 2
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 25
+  save_total_limit: 3
+  max_steps: 500
+  report_to: ["tensorboard"]
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  kl_coeff: 0.0
+  loss_type: "dapo"
+  beta: 0.0
+  mask_truncated_completions: true
+  epsilon_high: 5.0
+  lr_scheduler_type: constant
+
+# --- Generation (GRPO rollouts) ---
+generation:
+  max_completion_length: 2048
+  num_generations: 8
+  generation_batch_size: 8
+  max_prompt_length: 512
+  temperature: 1.0
+  stop_strings: ["</answer>"]
+
+# --- System Prompt ---
+system_prompt: |
+  You are a helpful assistant that decrypts Caesar ciphers. In a Caesar cipher, each letter is shifted by a fixed number of positions in the alphabet.
+
+  Example:
+  Cipher text: KHOOR ZRUOG
+  Step 1: Try shifting each letter back. With shift=3: K→H, H→E, O→L, O→L, R→O → "HELLO"
+  Step 2: Continue: Z→W, R→O, U→R, O→L, G→D → "WORLD"
+  Decrypted: HELLO WORLD
+
+  Put your thinking inside <think> and </think> tags, and your final decrypted text inside <answer> and </answer> tags.
+
+generation_logging:
+  enabled: true
+  log_dir: results/grpo_qwen25_7b_caesar/generations
+  every_n_steps: 20
+  print_n_examples: 20
