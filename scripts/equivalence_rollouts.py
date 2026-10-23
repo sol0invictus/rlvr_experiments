@@ -34,9 +34,13 @@ def hf_rollouts(model_path, prompts, n, max_new, stop, seed, batch_size):
     for i in range(0, len(flat), batch_size):
         enc = tok(flat[i:i + batch_size], return_tensors="pt", padding=True).to(model.device)
         with torch.no_grad():
+            # Exactly the knobs TRL 1.0.0 sets on its HF generate path (GRPOTrainer
+            # generation_kwargs), so nothing leaks in from the checkpoint's
+            # generation_config.json (e.g. Qwen2.5 repetition_penalty 1.1).
             out = model.generate(**enc, max_new_tokens=max_new, do_sample=True, temperature=1.0, top_p=1.0,
-                                 top_k=0, stop_strings=stop, tokenizer=tok, eos_token_id=tok.eos_token_id,
-                                 pad_token_id=tok.pad_token_id)
+                                 top_k=0, min_p=None, repetition_penalty=1.0,
+                                 stop_strings=stop, tokenizer=tok, eos_token_id=tok.eos_token_id,
+                                 pad_token_id=tok.pad_token_id, bos_token_id=tok.bos_token_id)
         for row in out[:, enc["input_ids"].shape[1]:].tolist():
             # same post-processing as training: cut at EOS, strip trailing pad
             if tok.eos_token_id in row:
@@ -53,8 +57,9 @@ def hf_rollouts(model_path, prompts, n, max_new, stop, seed, batch_size):
 def vllm_rollouts(model_path, prompts, n, max_new, stop, seed):
     from vllm import LLM, SamplingParams
     llm = LLM(model=model_path, dtype="bfloat16", seed=seed, gpu_memory_utilization=0.5)
-    params = SamplingParams(n=n, temperature=1.0, top_p=1.0, top_k=0, max_tokens=max_new,
-                            stop=stop, include_stop_str_in_output=True, seed=seed)
+    # TRL 1.0.0 colocate-mode SamplingParams, plus our stop-string generation_kwargs.
+    params = SamplingParams(n=n, temperature=1.0, top_p=1.0, top_k=0, min_p=0.0, repetition_penalty=1.0,
+                            max_tokens=max_new, stop=stop, include_stop_str_in_output=True, seed=seed)
     texts, ntoks = [], []
     for o in llm.generate(prompts, params):
         for c in o.outputs:

@@ -18,6 +18,10 @@ Per matrix (2-D weights of the transformer blocks, plus the embedding):
                                     sin/cos estimator)
     rot_deg_arccos_fp32             same with the naive fp32 arccos estimator, whose floor is
                                     ~0.02-0.05 deg (identical subspaces read as "rotated")
+    rot_deg_fp32svd_arccos          (--fp32_svd_variant) singular vectors from an fp32 SVD + naive
+                                    arccos. On GPU the fp32 vectors are only orthonormal to ~1e-4,
+                                    which reads as ~1 deg of rotation by itself. All SVDs above
+                                    are float64.
     tau_sigma1, tau_decay           sigma_1(tau) and sigma_1(tau) / sigma_10(tau)
 
 Whole model:
@@ -107,7 +111,8 @@ def principal_angles_deg_arccos_fp32(A: torch.Tensor, B: torch.Tensor) -> torch.
     return torch.rad2deg(torch.arccos(s))
 
 
-def matrix_metrics(w_s: torch.Tensor, w_g: torch.Tensor, k: int, svd: bool, device: str) -> Dict:
+def matrix_metrics(w_s: torch.Tensor, w_g: torch.Tensor, k: int, svd: bool, device: str,
+                   fp32_svd_variant: bool = False) -> Dict:
     tau = w_g - w_s
     out = {
         "shape": list(w_s.shape),
@@ -118,7 +123,10 @@ def matrix_metrics(w_s: torch.Tensor, w_g: torch.Tensor, k: int, svd: bool, devi
     if not svd or w_s.dim() != 2:
         return out
 
-    w_s, w_g, tau = w_s.to(device), w_g.to(device), tau.to(device)
+    # float64 SVD: an fp32 GPU SVD returns singular vectors that are only orthonormal to
+    # ~1e-4, which alone reads as ~1 deg of "rotation" (true value ~0.01 deg). The fp32
+    # variant is kept below only to compare against numbers computed that way.
+    w_s, w_g, tau = w_s.to(device, torch.float64), w_g.to(device, torch.float64), tau.to(device, torch.float64)
     U_s, S_s, Vh_s = torch.linalg.svd(w_s, full_matrices=False)
     U_g, S_g, _ = torch.linalg.svd(w_g, full_matrices=False)
     r = S_s.numel()
@@ -144,6 +152,11 @@ def matrix_metrics(w_s: torch.Tensor, w_g: torch.Tensor, k: int, svd: bool, devi
     out["k"] = kk
     out["rot_deg"] = float(principal_angles_deg(U_s[:, :kk], U_g[:, :kk]).mean())
     out["rot_deg_arccos_fp32"] = float(principal_angles_deg_arccos_fp32(U_s[:, :kk], U_g[:, :kk]).mean())
+    if fp32_svd_variant:
+        U_s32 = torch.linalg.svd(w_s.float(), full_matrices=False)[0][:, :kk]
+        U_g32 = torch.linalg.svd(w_g.float(), full_matrices=False)[0][:, :kk]
+        out["rot_deg_fp32svd_arccos"] = float(principal_angles_deg_arccos_fp32(U_s32, U_g32).mean())
+        out["fp32svd_orth_err"] = float((U_s32.T @ U_s32 - torch.eye(kk, device=U_s32.device)).abs().max())
     return out
 
 
@@ -156,7 +169,8 @@ def classify(name: str) -> Tuple[Optional[int], str]:
     return None, "other"
 
 
-def analyze(sft_dir: str, grpo_dir: str, k: int, top_n: int, svd: bool, device: str) -> Dict:
+def analyze(sft_dir: str, grpo_dir: str, k: int, top_n: int, svd: bool, device: str,
+            fp32_svd_variant: bool = False) -> Dict:
     per_matrix = {}
     sq_all = sq_linear = sq_no_embed = 0.0
     for name, w_s, w_g in iter_pairs(sft_dir, grpo_dir):
@@ -168,7 +182,7 @@ def analyze(sft_dir: str, grpo_dir: str, k: int, top_n: int, svd: bool, device: 
         if layer is None:
             continue
         sq_linear += sq
-        m = matrix_metrics(w_s, w_g, k=k, svd=svd, device=device)
+        m = matrix_metrics(w_s, w_g, k=k, svd=svd, device=device, fp32_svd_variant=fp32_svd_variant)
         m.update(layer=layer, type=ltype)
         per_matrix[name] = m
 
@@ -178,7 +192,8 @@ def analyze(sft_dir: str, grpo_dir: str, k: int, top_n: int, svd: bool, device: 
     by_type = defaultdict(lambda: defaultdict(list))
     for m in per_matrix.values():
         for key in ("tau_fro", "rel_change", "spec_ratio", "max_rel_sigma_shift", "d_erank",
-                    "rho_k", "rho_null", "rot_deg", "rot_deg_arccos_fp32", "tau_sigma1", "tau_decay"):
+                    "rho_k", "rho_null", "rot_deg", "rot_deg_arccos_fp32", "rot_deg_fp32svd_arccos",
+                    "fp32svd_orth_err", "tau_sigma1", "tau_decay"):
             if key in m and not (isinstance(m[key], float) and math.isnan(m[key])):
                 by_type[m["type"]][key].append(m[key])
     by_type_mean = {t: {key: sum(v) / len(v) for key, v in d.items()} for t, d in by_type.items()}
@@ -224,7 +239,8 @@ def summarize(res: Dict) -> str:
     for t in ("mlp.down_proj", "mlp.up_proj", "attn.q_proj"):
         d = res["by_type"].get(t, {})
         if "rot_deg" in d:
-            lines.append(f"  {t:14s} rot {d['rot_deg']:.3f} deg (arccos-fp32 {d['rot_deg_arccos_fp32']:.3f}) | "
+            extra = (f", fp32-SVD {d['rot_deg_fp32svd_arccos']:.3f}" if "rot_deg_fp32svd_arccos" in d else "")
+            lines.append(f"  {t:14s} rot {d['rot_deg']:.3f} deg (arccos-fp32 {d['rot_deg_arccos_fp32']:.3f}{extra}) | "
                          f"rel {100 * d['rel_change']:.3f}% | "
                          f"spec_ratio {d['spec_ratio']:.4f} | rho_k {d.get('rho_k', nan):.2e} "
                          f"(null {d['rho_null']:.2e})")
@@ -240,6 +256,8 @@ def parse_args():
     p.add_argument("--k", type=int, default=100, help="Top-k subspace size (default 100)")
     p.add_argument("--top_n", type=int, default=20, help="Matrices used for depth COM (default 20)")
     p.add_argument("--svd", action="store_true", help="Compute SVD-based metrics (slow on CPU)")
+    p.add_argument("--fp32_svd_variant", action="store_true",
+                   help="Also compute rotation from an fp32 SVD + arccos (to compare with numbers computed that way)")
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     p.add_argument("--out", default=None, help="Output JSON (single --grpo)")
     p.add_argument("--out_dir", default=None, help="Output dir, one JSON per --grpo")
@@ -249,7 +267,8 @@ def parse_args():
 def main():
     args = parse_args()
     for grpo_dir in args.grpo:
-        res = analyze(args.sft, grpo_dir, k=args.k, top_n=args.top_n, svd=args.svd, device=args.device)
+        res = analyze(args.sft, grpo_dir, k=args.k, top_n=args.top_n, svd=args.svd, device=args.device,
+                      fp32_svd_variant=args.fp32_svd_variant)
         print(summarize(res))
         out = args.out if len(args.grpo) == 1 and args.out else None
         if out is None and args.out_dir:
