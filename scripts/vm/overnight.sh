@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Unattended baseline replication (HF generate, original recipe) on a 1x A100 80GB VM.
-#   SFT (Qwen3-4B-Instruct-2507) -> eval W_sft -> 300-step GRPO -> evals -> geometry
+#   SFT -> eval W_sft -> HF-vs-vLLM rollout check -> 300-step GRPO -> evals -> geometry
 #   -> self-delete the VM.
 # Everything lands on the /data volume, which outlives the VM.
 #
-#   tmux new -d -s overnight 'bash scripts/vm/overnight.sh'
+#   RUN=qwen3_4b tmux new -d -s overnight 'bash scripts/vm/overnight.sh'
+#
+# RUN picks the SFT base (configs/replication/sft_<RUN>.yaml):
+#   qwen3_4b_instruct2507 (default, first run) | qwen3_4b
 #
 # Steps after SFT/GRPO are best-effort: a failed eval or geometry step is recorded
 # and the pipeline moves on, so the VM is always deleted at the end.
@@ -12,9 +15,17 @@ set -uo pipefail
 source /data/env.sh
 J="bash scripts/vm/run_job.sh"
 R=/data/rlvr
-SFT=$R/sft_qwen3_4b_instruct2507
-CONFIG=configs/replication/grpo_basic_arithmetic_4b_instruct2507.yaml
-OUT=$R/grpo_basic_arithmetic_4b_instruct2507
+RUN=${RUN:-qwen3_4b_instruct2507}
+SFT_CONFIG=configs/replication/sft_$RUN.yaml
+SFT=$R/sft_$RUN
+if [ "$RUN" = qwen3_4b ]; then
+    CONFIG=configs/replication/grpo_basic_arithmetic_4b.yaml
+    OUT=$R/grpo_basic_arithmetic_4b
+else
+    CONFIG=configs/replication/grpo_basic_arithmetic_4b_$RUN.yaml
+    OUT=$R/grpo_basic_arithmetic_4b_$RUN
+fi
+grep -q "name_or_path: $SFT\$" "$CONFIG" || { echo "$CONFIG does not load $SFT"; exit 1; }
 TASKS=basic_arithmetic,syllogism,knights_knaves,countdown,maze,shortest_path,mini_sudoku,leg_counting
 STATUS=$R/status/overnight.done
 failed=()
@@ -33,12 +44,17 @@ sha256sum data_gen/data/sft_warmup.jsonl | tee $R/sft_warmup.sha256
 
 # --- SFT warm-up -> W_sft --------------------------------------------------
 if [ ! -f "$SFT/config.json" ]; then
-    $J sft 90m python train_sft.py configs/replication/sft_qwen3_4b_instruct2507.yaml || { failed+=(sft); exit 1; }
+    $J sft 90m python train_sft.py $SFT_CONFIG || { failed+=(sft); exit 1; }
 fi
 $J eval_sft_vllm 90m python evaluate_transfer.py --model $SFT --tasks $TASKS \
-    --num_samples 200 --backend vllm --output_dir $R/eval/sft_qwen3_4b_instruct2507 || failed+=(eval_sft_vllm)
+    --num_samples 200 --backend vllm --output_dir $R/eval/sft_$RUN || failed+=(eval_sft_vllm)
 $J eval_sft_hf 60m python evaluate_transfer.py --model $SFT --tasks basic_arithmetic \
-    --num_samples 200 --backend hf --output_dir $R/eval/sft_qwen3_4b_instruct2507 || failed+=(eval_sft_hf)
+    --num_samples 200 --backend hf --output_dir $R/eval/sft_$RUN || failed+=(eval_sft_hf)
+
+# --- Is vLLM generation a recipe-preserving swap at 4B? (HF vs vLLM rollouts) -------
+mkdir -p $R/equiv
+$J equiv_4b 60m python scripts/equivalence_rollouts.py --model $SFT --config $CONFIG \
+    --prompts 64 --batch_size 64 --out $R/equiv/sft_$RUN.json || failed+=(equiv_4b)
 
 # --- GRPO, 300 steps, HF generate (the original generation path) ---------------
 $J grpo 5h python train_grpo.py $CONFIG || failed+=(grpo)

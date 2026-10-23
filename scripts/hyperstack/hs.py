@@ -82,6 +82,7 @@ def main():
     c.add_argument("name")
     c.add_argument("--flavor", required=True)
     c.add_argument("--volume-id", type=int, default=None)
+    c.add_argument("--image", default=IMAGE, help="OS image (CPU flavors: 'Ubuntu Server 24.04 LTS (Noble Numbat)')")
     for name in ("show", "hibernate", "restore", "delete"):
         sub.add_parser(name).add_argument("vm_id", type=int)
     v = sub.add_parser("create-volume")
@@ -105,7 +106,7 @@ def main():
         body = {
             "name": args.name,
             "environment_name": ENVIRONMENT,
-            "image_name": IMAGE,
+            "image_name": args.image,
             "flavor_name": args.flavor,
             "key_name": KEY_NAME,
             "count": 1,
