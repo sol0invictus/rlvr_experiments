@@ -4,6 +4,12 @@ Evaluate Cross-Task Transfer for Reasoning Skill Experiments
 Evaluates a trained model on multiple reasoning-gym tasks to measure
 how training on one task transfers to others.
 
+Every generation is scored under three answer-extraction rules so old and new
+numbers can be compared from the same samples:
+    last      last <answer>...</answer> only (the paper's post-fix rule; primary)
+    first     first <answer>...</answer> only (what the GRPO training reward uses)
+    legacy    first <answer>, else '####', else last line (the pre-fix eval)
+
 Usage:
     # Evaluate on default pilot tasks
     python evaluate_transfer.py --model results/grpo_countdown
@@ -12,7 +18,10 @@ Usage:
     python evaluate_transfer.py --model results/grpo_countdown \
         --tasks countdown,basic_arithmetic,knights_and_knaves
 
-    # With config file (for model settings)
+    # Batched vLLM generation (much faster; cross-check against --backend hf)
+    python evaluate_transfer.py --model results/grpo_countdown --backend vllm
+
+    # With config file (for model settings / system prompt)
     python evaluate_transfer.py configs/eval_transfer.yaml \
         --model results/grpo_countdown
 """
@@ -35,13 +44,7 @@ try:
 except ImportError:
     REASONING_GYM_AVAILABLE = False
 
-# Try Unsloth first for faster inference
-try:
-    from unsloth import FastLanguageModel
-    UNSLOTH_AVAILABLE = True
-except ImportError:
-    UNSLOTH_AVAILABLE = False
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 # ======================================================================
@@ -70,108 +73,143 @@ TASK_PARAMS = {
     },
 }
 
-
-# ======================================================================
-# Model loading
-# ======================================================================
-def load_model(model_path: str, max_seq_length: int = 2048):
-    """Load model for inference."""
-    print(f"Loading model from {model_path}...")
-
-    if UNSLOTH_AVAILABLE:
-        model, tokenizer = FastLanguageModel.from_pretrained(
-            model_name=model_path,
-            max_seq_length=max_seq_length,
-            load_in_4bit=True,
-        )
-        FastLanguageModel.for_inference(model)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-        )
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    return model, tokenizer
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a helpful assistant. Think step by step inside "
+    "<think>...</think> tags, then provide your final answer "
+    "inside <answer>...</answer> tags."
+)
 
 
 # ======================================================================
-# Generation
+# Generation backends
 # ======================================================================
-def generate_response(
-    model,
-    tokenizer,
-    prompt: str,
-    system_prompt: Optional[str] = None,
-    max_new_tokens: int = 1024,
-    temperature: float = 0.1,
-) -> str:
-    """Generate model response for a prompt."""
+def build_prompt(tokenizer, question: str, system_prompt: Optional[str]) -> str:
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": prompt})
+    messages.append({"role": "user", "content": question})
+    # No chat_template_kwargs: for Qwen3 hybrid models enable_thinking stays at its
+    # default (True), so the model opens <think> itself, as in training.
+    return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
-    input_text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True,
-    )
 
-    inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
+def model_sampling_defaults(model_path: str) -> Dict[str, Any]:
+    """Sampling knobs HF generate inherits from the checkpoint's generation_config.json
+    when the caller only sets temperature (as the original eval did): e.g. Qwen3-4B
+    top_k=20 / top_p=0.95, Qwen2.5 repetition_penalty 1.05-1.1. The vLLM backend
+    applies the same values so both backends sample from the same distribution."""
+    from transformers import GenerationConfig
+    try:
+        gc = GenerationConfig.from_pretrained(model_path)
+    except OSError:
+        gc = GenerationConfig()
+    return {
+        "top_k": gc.top_k if gc.top_k is not None else 50,
+        "top_p": gc.top_p if gc.top_p is not None else 1.0,
+        "min_p": gc.min_p if gc.min_p is not None else 0.0,
+        "repetition_penalty": gc.repetition_penalty if gc.repetition_penalty is not None else 1.0,
+    }
 
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            do_sample=temperature > 0,
-            pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
+
+class HFGenerator:
+    """Batched HF generate with left padding."""
+
+    def __init__(self, model_path: str, batch_size: int, seed: int, stop_strings: Optional[List[str]]):
+        print(f"Loading model from {model_path} (HF)...")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_path, torch_dtype=torch.bfloat16, device_map="auto"
         )
+        self.model.eval()
+        # GRPO checkpoints carry stop_strings=['</answer>'] in generation_config.json
+        # (train_grpo.py sets it before training); SFT checkpoints don't. Set it
+        # explicitly so every model is evaluated the same way.
+        self.model.generation_config.stop_strings = stop_strings
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side="left")
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.batch_size = batch_size
+        self.sampling = {**model_sampling_defaults(model_path), "stop_strings": stop_strings}
+        torch.manual_seed(seed)
 
-    response = tokenizer.decode(
-        outputs[0][inputs["input_ids"].shape[1]:],
-        skip_special_tokens=True,
-    )
-    return response
+    def generate(self, prompts: List[str], max_new_tokens: int, temperature: float) -> List[str]:
+        responses = []
+        for i in tqdm(range(0, len(prompts), self.batch_size), desc="generate"):
+            batch = prompts[i:i + self.batch_size]
+            inputs = self.tokenizer(batch, return_tensors="pt", padding=True).to(self.model.device)
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    do_sample=temperature > 0,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    tokenizer=self.tokenizer,
+                )
+            new_tokens = outputs[:, inputs["input_ids"].shape[1]:]
+            responses.extend(self.tokenizer.batch_decode(new_tokens, skip_special_tokens=True))
+        return responses
+
+
+class VLLMGenerator:
+    """Batched vLLM generation (all prompts in one call)."""
+
+    def __init__(self, model_path: str, seed: int, gpu_memory_utilization: float,
+                 stop_strings: Optional[List[str]]):
+        from vllm import LLM
+        print(f"Loading model from {model_path} (vLLM)...")
+        self.llm = LLM(model=model_path, dtype="bfloat16", seed=seed,
+                       gpu_memory_utilization=gpu_memory_utilization)
+        self.tokenizer = self.llm.get_tokenizer()
+        self.seed = seed
+        self.sampling = {**model_sampling_defaults(model_path), "stop_strings": stop_strings}
+
+    def generate(self, prompts: List[str], max_new_tokens: int, temperature: float) -> List[str]:
+        from vllm import SamplingParams
+        s = self.sampling
+        params = SamplingParams(temperature=temperature, top_p=s["top_p"], top_k=s["top_k"],
+                                min_p=s["min_p"], repetition_penalty=s["repetition_penalty"],
+                                stop=s["stop_strings"], include_stop_str_in_output=True,
+                                max_tokens=max_new_tokens, seed=self.seed)
+        outputs = self.llm.generate(prompts, params)
+        return [o.outputs[0].text for o in outputs]
 
 
 # ======================================================================
-# Answer extraction (generalized)
+# Answer extraction
 # ======================================================================
-def extract_answer(text: str) -> Optional[str]:
+ANSWER_RE = re.compile(r"<answer>(.*?)</answer>", re.DOTALL)
+
+
+def extract_answer(text: str, rule: str = "last") -> Optional[str]:
     """
     Extract answer from model response.
 
-    Priority:
-    1. <answer>...</answer> tags  (DeepSeek-R1 format)
-    2. #### marker                (GSM8K format)
-    3. Last non-empty line        (fallback)
+    rule="last":   last <answer>...</answer> (post-fix eval; an echoed template tag
+                   such as "inside <answer>...</answer> tags" can't hijack it)
+    rule="first":  first <answer>...</answer> (training reward behaviour)
+    rule="legacy": first <answer>, else '####' marker, else last non-empty line
     """
-    # 1. <answer> tags
-    match = re.search(r"<answer>(.*?)</answer>", text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
+    matches = ANSWER_RE.findall(text)
+    if rule == "last":
+        return matches[-1].strip() if matches else None
+    if rule == "first":
+        return matches[0].strip() if matches else None
 
-    # 2. #### marker
+    # legacy
+    if matches:
+        return matches[0].strip()
     if "####" in text:
         parts = text.split("####")
         if len(parts) > 1:
-            answer = parts[-1].strip().split("\n")[0].strip()
-            return answer
-
-    # 3. Last non-empty line
-    lines = text.strip().split("\n")
-    for line in reversed(lines):
+            return parts[-1].strip().split("\n")[0].strip()
+    for line in reversed(text.strip().split("\n")):
         line = line.strip()
         if line and not line.startswith("<"):
             return line
-
     return None
+
+
+EXTRACTION_RULES = ("last", "first", "legacy")
 
 
 # ======================================================================
@@ -245,7 +283,7 @@ def _verify_numeric(extracted: str, truth: str) -> bool:
         ext_num = float(extracted.replace(",", "").strip())
         truth_num = float(truth.replace(",", "").strip())
         return abs(ext_num - truth_num) < 1e-6
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         pass
     return normalize(extracted) == normalize(truth)
 
@@ -254,13 +292,13 @@ def _verify_numeric(extracted: str, truth: str) -> bool:
 # Single-task evaluation
 # ======================================================================
 def evaluate_task(
-    model,
-    tokenizer,
+    generator,
     task_name: str,
     num_samples: int = 200,
     seed: int = 9999,
     system_prompt: Optional[str] = None,
     max_new_tokens: int = 1024,
+    temperature: float = 0.1,
     verbose: bool = True,
 ) -> Tuple[Dict[str, Any], List[Dict]]:
     """
@@ -294,76 +332,69 @@ def evaluate_task(
             size=num_samples,
             seed=seed,
         )
+    items = list(dataset)
 
-    correct = 0
-    valid_format = 0
-    reasoning_lengths = []
+    prompts = [build_prompt(generator.tokenizer, item["question"], system_prompt) for item in items]
+    responses = generator.generate(prompts, max_new_tokens=max_new_tokens, temperature=temperature)
+
+    correct = {rule: 0 for rule in EXTRACTION_RULES}
+    valid_format = {rule: 0 for rule in EXTRACTION_RULES}
+    reasoning_lengths, response_lengths, response_tokens = [], [], []
     results = []
 
-    for item in tqdm(dataset, desc=task_name):
-        question = item["question"]
+    for item, response in zip(items, responses):
         ground_truth = str(item["answer"])
         metadata = item.get("metadata", {})
 
-        response = generate_response(
-            model,
-            tokenizer,
-            question,
-            system_prompt=system_prompt,
-            max_new_tokens=max_new_tokens,
-        )
-
-        extracted = extract_answer(response)
-
-        if extracted is not None:
-            valid_format += 1
-
-        is_correct = verify_answer(task_name, extracted, ground_truth, metadata)
-        if is_correct:
-            correct += 1
+        result = {
+            "question": item["question"],
+            "ground_truth": ground_truth,
+            "response": response,
+        }
+        for rule in EXTRACTION_RULES:
+            extracted = extract_answer(response, rule)
+            is_correct = verify_answer(task_name, extracted, ground_truth, metadata)
+            valid_format[rule] += extracted is not None
+            correct[rule] += is_correct
+            result[f"extracted_{rule}"] = extracted
+            result[f"correct_{rule}"] = is_correct
+        results.append(result)
 
         # Track reasoning length
         think_match = re.search(r"<think>(.*?)</think>", response, re.DOTALL)
         if think_match:
             reasoning_lengths.append(len(think_match.group(1)))
-
-        result = {
-            "question": question[:200],
-            "ground_truth": ground_truth[:200],
-            "response": response[:500],
-            "extracted": extracted,
-            "correct": is_correct,
-        }
-        results.append(result)
+        response_lengths.append(len(response))
+        response_tokens.append(len(generator.tokenizer(response, add_special_tokens=False)["input_ids"]))
 
         # Show first few examples
         if verbose and len(results) <= 2:
             print(f"\n--- Example {len(results)} ---")
-            print(f"Q: {question[:120]}...")
+            print(f"Q: {item['question'][:120]}...")
             print(f"Truth: {ground_truth[:80]}")
-            print(f"Extracted: {extracted}")
-            print(f"Correct: {is_correct}")
+            print(f"Extracted (last): {result['extracted_last']}")
+            print(f"Correct (last): {result['correct_last']}")
 
-    accuracy = correct / max(num_samples, 1)
-    format_rate = valid_format / max(num_samples, 1)
-    avg_reasoning = (
-        sum(reasoning_lengths) / len(reasoning_lengths)
-        if reasoning_lengths
-        else 0
-    )
-
+    n = max(num_samples, 1)
+    mean = lambda xs: sum(xs) / len(xs) if xs else 0
     metrics = {
         "task": task_name,
-        "accuracy": accuracy,
-        "valid_format_rate": format_rate,
-        "avg_reasoning_length": avg_reasoning,
+        "accuracy": correct["last"] / n,
+        "valid_format_rate": valid_format["last"] / n,
+        "accuracy_by_rule": {rule: correct[rule] / n for rule in EXTRACTION_RULES},
+        "valid_format_by_rule": {rule: valid_format[rule] / n for rule in EXTRACTION_RULES},
+        "avg_reasoning_length": mean(reasoning_lengths),
+        "avg_response_chars": mean(response_lengths),
+        "avg_response_tokens": mean(response_tokens),
         "num_samples": num_samples,
-        "num_correct": correct,
+        "num_correct": correct["last"],
     }
 
-    print(f"\n  Accuracy:     {accuracy:.2%}  ({correct}/{num_samples})")
-    print(f"  Format rate:  {format_rate:.2%}")
-    print(f"  Avg reason:   {avg_reasoning:.0f} chars")
+    print(f"\n  Accuracy (last/first/legacy): "
+          + " / ".join(f"{metrics['accuracy_by_rule'][r]:.2%}" for r in EXTRACTION_RULES))
+    print(f"  Format rate:  {metrics['valid_format_rate']:.2%}")
+    print(f"  Avg reason:   {metrics['avg_reasoning_length']:.0f} chars, "
+          f"response {metrics['avg_response_chars']:.0f} chars / {metrics['avg_response_tokens']:.0f} tokens")
 
     return metrics, results
 
@@ -417,6 +448,35 @@ def parse_args():
         default=1024,
         help="Max tokens per generation (default: 1024)",
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.1,
+        help="Sampling temperature; 0 = greedy (default: 0.1, the original script's value)",
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["hf", "vllm"],
+        default="hf",
+        help="Generation backend (default: hf)",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=32,
+        help="HF backend batch size (default: 32)",
+    )
+    parser.add_argument(
+        "--stop_at_answer",
+        action="store_true",
+        help="Stop generation at the first </answer> (default: off, generate to EOS / max_new_tokens)",
+    )
+    parser.add_argument(
+        "--gpu_memory_utilization",
+        type=float,
+        default=0.85,
+        help="vLLM backend GPU memory fraction (default: 0.85)",
+    )
     return parser.parse_args()
 
 
@@ -444,21 +504,25 @@ def main():
     # System prompt
     system_prompt = config.get("system_prompt")
     if system_prompt is None:
-        system_prompt = (
-            "You are a helpful assistant. Think step by step inside "
-            "<think>...</think> tags, then provide your final answer "
-            "inside <answer>...</answer> tags."
-        )
-
-    max_seq_length = config.get("model", {}).get("max_seq_length", 2048)
+        system_prompt = DEFAULT_SYSTEM_PROMPT
+    system_prompt = system_prompt.strip()
 
     print(f"Model:   {model_path}")
     print(f"Tasks:   {tasks}")
     print(f"Samples: {args.num_samples} per task")
     print(f"Seed:    {args.seed}")
+    print(f"Backend: {args.backend}, temperature={args.temperature}, max_new_tokens={args.max_new_tokens}")
 
     # Load model
-    model, tokenizer = load_model(model_path, max_seq_length=max_seq_length)
+    stop_strings = ["</answer>"] if args.stop_at_answer else None
+    if args.backend == "vllm":
+        generator = VLLMGenerator(model_path, seed=args.seed,
+                                  gpu_memory_utilization=args.gpu_memory_utilization,
+                                  stop_strings=stop_strings)
+    else:
+        generator = HFGenerator(model_path, batch_size=args.batch_size, seed=args.seed,
+                                stop_strings=stop_strings)
+    print(f"Sampling: temperature={args.temperature}, {generator.sampling}")
 
     # Evaluate each task
     all_metrics = {}
@@ -466,13 +530,13 @@ def main():
 
     for task_name in tasks:
         metrics, results = evaluate_task(
-            model,
-            tokenizer,
+            generator,
             task_name,
             num_samples=args.num_samples,
             seed=args.seed,
             system_prompt=system_prompt,
             max_new_tokens=args.max_new_tokens,
+            temperature=args.temperature,
         )
         all_metrics[task_name] = metrics
         all_results[task_name] = results
@@ -482,11 +546,13 @@ def main():
     print("TRANSFER EVALUATION SUMMARY")
     print("=" * 60)
     print(f"Model: {model_path}")
-    print(f"{'Task':<25} {'Accuracy':>10} {'Format':>10}")
-    print("-" * 50)
+    print(f"{'Task':<25} {'Acc(last)':>10} {'Acc(first)':>11} {'Acc(legacy)':>12} {'Format':>8}")
+    print("-" * 70)
     for task_name in tasks:
         m = all_metrics[task_name]
-        print(f"{task_name:<25} {m['accuracy']:>9.2%} {m['valid_format_rate']:>9.2%}")
+        r = m["accuracy_by_rule"]
+        print(f"{task_name:<25} {r['last']:>9.2%} {r['first']:>10.2%} {r['legacy']:>11.2%} "
+              f"{m['valid_format_rate']:>7.2%}")
     print("=" * 60)
 
     # Save results
@@ -496,26 +562,28 @@ def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_name = Path(model_path).name
 
+    run_info = {
+        "model": model_path,
+        "timestamp": timestamp,
+        "eval_seed": args.seed,
+        "num_samples": args.num_samples,
+        "backend": args.backend,
+        "temperature": args.temperature,
+        "max_new_tokens": args.max_new_tokens,
+        "sampling": generator.sampling,
+        "system_prompt": system_prompt,
+    }
+
     # Save compact metrics (for transfer matrix construction)
     metrics_file = output_dir / f"metrics_{model_name}_{timestamp}.json"
     with open(metrics_file, "w") as f:
-        json.dump(
-            {
-                "model": model_path,
-                "timestamp": timestamp,
-                "eval_seed": args.seed,
-                "num_samples": args.num_samples,
-                "tasks": all_metrics,
-            },
-            f,
-            indent=2,
-        )
+        json.dump({**run_info, "tasks": all_metrics}, f, indent=2)
     print(f"\nMetrics saved to {metrics_file}")
 
-    # Save detailed per-example results (larger file)
+    # Save detailed per-example results with full responses (larger file)
     details_file = output_dir / f"details_{model_name}_{timestamp}.json"
     with open(details_file, "w") as f:
-        json.dump(all_results, f, indent=2)
+        json.dump({**run_info, "tasks": all_results}, f, indent=2)
     print(f"Details saved to {details_file}")
 
 

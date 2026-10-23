@@ -1,11 +1,11 @@
 import sys
 import argparse
 import os
+import time
 import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
-from environments.gsm8k import GSM8KEnvironment
 from environments.reasoning_gym_env import ReasoningGymEnvironment
 from callbacks.generation_logger import GenerationLoggingCallback
 from callbacks.validation_callback import ValidationCallback
@@ -19,12 +19,14 @@ def get_environment(config):
     if not env_config:
         # Fallback for legacy config or direct dataset inference
         if config.get('data', {}).get('dataset_name') == 'openai/gsm8k':
+            from environments.gsm8k import GSM8KEnvironment
             return GSM8KEnvironment(config)
         else:
             raise ValueError("Could not determine environment from config.")
-            
+
     name = env_config.get('name')
     if name == 'gsm8k':
+        from environments.gsm8k import GSM8KEnvironment
         return GSM8KEnvironment(config)
     elif name == 'reasoning_gym':
         return ReasoningGymEnvironment(config)
@@ -125,16 +127,24 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
-    # Configure stop_strings on model's generation_config
-    # This makes HF generate() stop as soon as </answer> is produced
-    stop_strings = config.get('generation', {}).get('stop_strings', ['</answer>'])
-    model.generation_config.stop_strings = stop_strings
-    print(f"  stop_strings: {stop_strings}")
-    
     # Training Arguments
     print("Configuring training arguments...")
     training_conf = config['training']
     gen_conf = config.get('generation', {})
+    vllm_conf = config.get('vllm', {})
+    use_vllm = vllm_conf.get('enabled', False)
+
+    # Stop generation as soon as </answer> is produced.
+    # - HF generate: via model.generation_config (needs the tokenizer patch below)
+    # - vLLM: via SamplingParams; include_stop_str_in_output keeps "</answer>" in the
+    #   text, otherwise the reward's <answer>...</answer> regex never matches.
+    stop_strings = gen_conf.get('stop_strings', ['</answer>'])
+    generation_kwargs = None
+    if use_vllm:
+        generation_kwargs = {"stop": stop_strings, "include_stop_str_in_output": True}
+    else:
+        model.generation_config.stop_strings = stop_strings
+    print(f"  stop_strings: {stop_strings} ({'vLLM' if use_vllm else 'HF generate'})")
 
     # Allow CLI override of max_steps (for smoke testing)
     max_steps = args.max_steps if args.max_steps is not None else training_conf.get('max_steps', -1)
@@ -142,12 +152,13 @@ def main():
     num_generations = gen_conf.get('num_generations', 4)
     per_device_train_batch_size = training_conf.get('per_device_train_batch_size', 1)
 
-    # generation_batch_size = num_generations * per_device_train_batch_size ensures
-    # all rollouts for a micro-batch are produced in a single forward pass, avoiding
-    # chunked generation that would interleave KV-cache evictions and reloads.
-    generation_batch_size = num_generations * per_device_train_batch_size
-    print(f"  generation_batch_size: {generation_batch_size} "
-          f"(num_generations={num_generations} × per_device_bs={per_device_train_batch_size})")
+    # generation_batch_size is GLOBAL in TRL (summed over all processes). With the
+    # original 8-GPU x per_device 1 x num_generations 8 layout, 8 meant one prompt
+    # x 8 completions per optimizer step. Use the config value if given, otherwise
+    # let TRL default it to the global batch (per_device x world x grad_accum).
+    generation_batch_size = gen_conf.get('generation_batch_size', None)
+    print(f"  generation_batch_size: {generation_batch_size} (global; None = TRL default), "
+          f"num_generations={num_generations}, per_device_bs={per_device_train_batch_size}")
 
     training_args = GRPOConfig(
         output_dir=training_conf['output_dir'],
@@ -169,12 +180,23 @@ def main():
         save_strategy=training_conf.get('save_strategy', 'steps'),
         save_steps=training_conf.get('save_steps', 10),
         save_total_limit=training_conf.get('save_total_limit', None),
+        save_only_model=training_conf.get('save_only_model', False),
+        seed=config.get('seed', 42),
         max_steps=max_steps,
         warmup_steps=training_conf.get('warmup_steps', 0),
         max_grad_norm=training_conf.get('max_grad_norm', 1.0),
         lr_scheduler_type=training_conf.get('lr_scheduler_type', 'cosine'),
         gradient_checkpointing=training_conf.get('gradient_checkpointing', False),
+        use_liger_kernel=training_conf.get('use_liger_kernel', False),
         dataloader_num_workers=training_conf.get('dataloader_num_workers', 4),
+        generation_kwargs=generation_kwargs,
+        use_vllm=use_vllm,
+        vllm_mode=vllm_conf.get('mode', 'colocate'),
+        vllm_gpu_memory_utilization=vllm_conf.get('gpu_memory_utilization', 0.3),
+        vllm_enable_sleep_mode=vllm_conf.get('enable_sleep_mode', False),
+        # Off by default: the original runs used HF generate, so there was no
+        # sampler/trainer logprob mismatch to correct. Turning it on changes the loss.
+        vllm_importance_sampling_correction=vllm_conf.get('importance_sampling_correction', False),
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
@@ -216,22 +238,49 @@ def main():
         callbacks=extra_callbacks,
     )
 
-    # Patch trainer's generate to inject tokenizer for stop_strings support
-    # TRL's GRPOTrainer.generate() doesn't pass tokenizer= to model.generate(),
-    # but transformers requires it when stop_strings are in generation_config
+    # Patch trainer's generate:
+    # 1. Inject tokenizer for stop_strings support. TRL's HF generate path doesn't pass
+    #    tokenizer= to model.generate(), but transformers requires it when stop_strings
+    #    are in generation_config. Signature-agnostic: TRL <=0.28 calls this with
+    #    (prompts), >=0.29 with (prompt_ids, images, multimodal_fields).
+    # 2. Strip trailing pad tokens. Rows that hit a stop string are padded with
+    #    pad_token_id until the longest row finishes; TRL only masks after EOS, so when
+    #    pad != eos (e.g. Qwen3: <|endoftext|> vs <|im_end|>) those pads would enter the
+    #    loss whenever a device generates >1 completion. The original 8-GPU runs had
+    #    1 completion per GPU, so stripping them restores the original semantics.
+    # 3. Log generation wall-clock time.
     _orig_generate_single = trainer._generate_single_turn
-    def _patched_generate_single(prompts):
+    pad_id, eos_id = tokenizer.pad_token_id, tokenizer.eos_token_id
+
+    def _strip_trailing_pad(ids):
+        end = len(ids)
+        while end > 0 and ids[end - 1] == pad_id:
+            end -= 1
+        return ids[:end]
+
+    def _patched_generate_single(*args, **kwargs):
         unwrapped = trainer.accelerator.unwrap_model(trainer.model)
         _orig_gen = unwrapped.generate
-        def _gen_with_tok(*args, **kwargs):
-            kwargs.setdefault('tokenizer', tokenizer)
-            return _orig_gen(*args, **kwargs)
+        def _gen_with_tok(*gen_args, **gen_kwargs):
+            gen_kwargs.setdefault('tokenizer', tokenizer)
+            return _orig_gen(*gen_args, **gen_kwargs)
         unwrapped.generate = _gen_with_tok
+        t0 = time.perf_counter()
         try:
-            result = _orig_generate_single(prompts)
+            result = _orig_generate_single(*args, **kwargs)
         finally:
             unwrapped.generate = _orig_gen
-        return result
+        mode = "train" if trainer.model.training else "eval"
+        trainer._metrics[mode]["timing/generate_s"].append(time.perf_counter() - t0)
+
+        if use_vllm or pad_id is None or pad_id == eos_id:
+            return result
+        # TRL >=0.29 returns (completion_ids, logprobs); <=0.28 returns
+        # (prompt_ids, completion_ids, logprobs, extra_fields). logprobs is None on the HF path.
+        result = list(result)
+        idx = 0 if len(result) == 2 else 1
+        result[idx] = [_strip_trailing_pad(ids) for ids in result[idx]]
+        return tuple(result)
     trainer._generate_single_turn = _patched_generate_single
 
     # Train

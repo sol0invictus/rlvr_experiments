@@ -4,3 +4,8 @@ output*/
 saved_models/
 results*/
 runs*/
+
+# study notes (never commit)
+PHASE_*.md
+notes/
+data_gen/data/sft_warmup.jsonl

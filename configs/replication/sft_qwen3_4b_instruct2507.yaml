@@ -1,0 +1,31 @@
+# ============================================================================
+# REPLICATION: SFT warm-up -> W_sft (4B), candidate base Qwen/Qwen3-4B-Instruct-2507
+# Body = configs_by_section/sec3_setup_sft_warmup/config_sft_qwen3_4b.yaml with:
+#   - base model = Qwen/Qwen3-4B-Instruct-2507 (fingerprint comparison, see PHASE_A.md 4.1)
+#   - 1 GPU: batch 4 x GA 2 x 8 GPUs = 64 effective -> 8 x GA 8 = 64 effective
+#   - max_seq_length -> max_length (TRL rename; same default 1024)
+#   - only the final weights are saved
+# Data: python data_gen/generate_sft_warmup.py --num_samples 1000 --seed 42
+#   sha256 3ed4759d323b307a9e2a3faf412e92dabb2562407c3137d6cc5c0e279d210beb
+# ============================================================================
+model:
+  name_or_path: "Qwen/Qwen3-4B-Instruct-2507"
+  torch_dtype: "bfloat16"
+
+seed: 42
+
+sft:
+  output_file: "data_gen/data/sft_warmup.jsonl"
+  output_dir: "/data/rlvr/sft_qwen3_4b_instruct2507"
+
+sft_training:
+  output_dir: "/data/rlvr/sft_qwen3_4b_instruct2507"
+  learning_rate: 2.0e-5
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 1
+  batch_size: 8
+  gradient_accumulation_steps: 8
+  save_strategy: "no"
+  max_length: 1024
+  report_to: "tensorboard"

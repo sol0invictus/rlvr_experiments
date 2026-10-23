@@ -1,0 +1,15 @@
+# Pinned stack for the 4B basic_arithmetic replication (see PHASE_A.md).
+# TRL 1.0.0 + transformers 4.57.6 is the stack the paper reports; vLLM 0.17.1 is the
+# newest release TRL 1.0.0 accepts and it pins torch 2.10.0.
+# Install: pip install -r requirements-replication.txt
+torch==2.10.0
+vllm==0.17.1
+transformers==4.57.6
+trl==1.0.0
+accelerate==1.15.0
+datasets==5.0.1
+reasoning-gym==0.1.25   # basic_arithmetic generator identical to 0.1.24
+safetensors
+tensorboard
+pyyaml
+tqdm

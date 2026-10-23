@@ -17,6 +17,7 @@ Config example:
 For use with the existing train_grpo.py infrastructure.
 """
 
+import math
 import re
 from typing import List, Callable, Dict, Any, Optional
 from datasets import Dataset
@@ -383,8 +384,11 @@ class ReasoningGymEnvironment:
         # Try to parse as number
         try:
             num = float(answer.replace(',', ''))
+            # "inf"/"nan"/"1e999" would raise OverflowError in int() and crash training
+            if math.isinf(num) or math.isnan(num):
+                return answer  # treat as string, will never match ground truth
             if num == int(num):
                 return str(int(num))
             return f"{num:.4f}"
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, OverflowError):
             return answer
