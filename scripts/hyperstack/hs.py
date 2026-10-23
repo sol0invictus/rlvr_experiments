@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -131,8 +132,20 @@ def main():
         print(call("GET", f"/core/virtual-machines/{args.vm_id}/hibernate-restore"))
         log_cost_event("vm_restored", vm_id=args.vm_id)
     elif args.cmd == "delete":
+        # Detach data volumes first: a volume still attached when its VM is deleted ends
+        # up RESERVED instead of AVAILABLE.
+        vm = vm_summary(call("GET", f"/core/virtual-machines/{args.vm_id}").get("instance", {}))
+        vol_ids = [v for v in vm["volumes"] if v is not None]
+        if vol_ids:
+            print("detach:", call("POST", f"/core/virtual-machines/{args.vm_id}/detach-volumes", {"volume_ids": vol_ids}))
+            for _ in range(20):
+                states = {v["id"]: v.get("status") for v in call("GET", "/core/volumes").get("volumes", [])}
+                print("volume states:", {i: states.get(i) for i in vol_ids})
+                if all(str(states.get(i)).lower() == "available" for i in vol_ids):
+                    break
+                time.sleep(15)
         print(call("DELETE", f"/core/virtual-machines/{args.vm_id}"))
-        log_cost_event("vm_deleted", vm_id=args.vm_id)
+        log_cost_event("vm_deleted", vm_id=args.vm_id, detached_volumes=vol_ids)
     elif args.cmd == "create-volume":
         res = call("POST", "/core/volumes", {
             "name": args.name, "environment_name": ENVIRONMENT, "volume_type": "Cloud-SSD", "size": args.size,
