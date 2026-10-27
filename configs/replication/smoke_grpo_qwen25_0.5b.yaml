@@ -1,0 +1,68 @@
+# ============================================================================
+# SMOKE TEST: GRPO on the 0.5B smoke SFT model (run with --max_steps 10).
+# Body = experiments/rlvr_geometry_paper/configs/phase2_arithmetic/direct_rlvr_4b.yaml
+# Only recipe-preserving changes (see PHASE_A.md):
+#   - 1 GPU: per_device_train_batch_size 1 -> 8 so one optimizer step is still
+#     1 prompt x 8 completions (original: 8 GPUs x 1). generation_batch_size 8 is
+#     global in TRL, so it stays 8.
+#   - gradient_checkpointing on (memory only, same math)
+#   - weights-only checkpoints every 25 steps, none deleted (save_total_limit removed)
+#   - tensorboard logging; every generation saved (flushed every 25 steps)
+#   - paths point at the VM volume
+# The original train_grpo.py never passed epsilon_high, mask_truncated_completions or
+# warmup_ratio to TRL. The current train_grpo.py does, so they are set below to what
+# actually ran. kl_coeff and max_prompt_length are still unused.
+# ============================================================================
+environment:
+  length_penalty: true
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 8
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  pad_after_stop: strip  # no EOS after a stop string, as with 1 completion/GPU originally
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 5
+  log_dir: /data/rlvr/smoke_grpo_0.5b/generations
+  print_n_examples: 2
+model:
+  name_or_path: /data/rlvr/smoke_sft_0.5b
+  torch_dtype: bfloat16
+seed: 42
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null  # paper/config said 5.0; never passed to TRL (inert anyway: on-policy)
+  gradient_accumulation_steps: 1
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false  # config said true; never passed to TRL. With stop strings it would mask every </answer>-stopped completion
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: /data/rlvr/smoke_grpo_0.5b
+  per_device_train_batch_size: 8
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 5
+  save_strategy: steps
+  warmup_ratio: 0.0  # config said 0.1; never passed to TRL (no warmup ran)

@@ -1,7 +1,9 @@
 import sys
 import argparse
 import os
+import time
 import torch
+import transformers
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
@@ -13,6 +15,13 @@ from callbacks.validation_callback import ValidationCallback
 def load_config(config_path):
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
+
+
+def _warmup_kwargs(training_conf):
+    warmup = training_conf.get('warmup_steps', training_conf.get('warmup_ratio', 0))
+    if int(transformers.__version__.split('.')[0]) >= 5 or float(warmup).is_integer():
+        return {'warmup_steps': int(warmup) if float(warmup).is_integer() else warmup}
+    return {'warmup_ratio': float(warmup)}
 
 
 def parse_args():
@@ -115,11 +124,20 @@ def main():
     # Not used with vLLM rollouts: a stop string ends the sequence without EOS,
     # which TRL's vLLM path treats as truncated. Instruct models emit EOS after
     # </answer> on their own.
-    use_vllm = config.get('vllm', {}).get('enabled', False)
+    #
+    # vllm.stop_strings: true keeps the original recipe's stop at </answer> on the
+    # vLLM path too (include_stop_str_in_output keeps "</answer>" in the text so the
+    # reward regex still matches). Safe only with mask_truncated_completions off.
+    vllm_conf = config.get('vllm', {})
+    use_vllm = vllm_conf.get('enabled', False)
     stop_strings = config.get('generation', {}).get('stop_strings', ['</answer>'])
+    generation_kwargs = None
     if not use_vllm:
         model.generation_config.stop_strings = stop_strings
         print(f"  stop_strings: {stop_strings}")
+    elif vllm_conf.get('stop_strings', False):
+        generation_kwargs = {"stop": stop_strings, "include_stop_str_in_output": True}
+        print(f"  stop_strings (vLLM): {stop_strings}")
     
     # Training Arguments
     print("Configuring training arguments...")
@@ -163,9 +181,11 @@ def main():
         save_strategy=training_conf.get('save_strategy', 'steps'),
         save_steps=training_conf.get('save_steps', 10),
         save_total_limit=training_conf.get('save_total_limit', None),
+        save_only_model=training_conf.get('save_only_model', False),
         max_steps=max_steps,
-        # transformers 5 dropped warmup_ratio; warmup_steps < 1 is read as a ratio
-        warmup_steps=training_conf.get('warmup_steps', training_conf.get('warmup_ratio', 0)),
+        # transformers 5 dropped warmup_ratio; warmup_steps < 1 is read as a ratio.
+        # transformers 4.x only accepts an int warmup_steps, so pass a ratio separately.
+        **_warmup_kwargs(training_conf),
         weight_decay=training_conf.get('weight_decay', 0.0),
         scale_rewards=training_conf.get('scale_rewards', 'group'),
         mask_truncated_completions=training_conf.get('mask_truncated_completions', False),
@@ -176,7 +196,9 @@ def main():
         max_grad_norm=training_conf.get('max_grad_norm', 1.0),
         lr_scheduler_type=training_conf.get('lr_scheduler_type', 'cosine'),
         gradient_checkpointing=training_conf.get('gradient_checkpointing', False),
+        use_liger_kernel=training_conf.get('use_liger_kernel', False),
         dataloader_num_workers=training_conf.get('dataloader_num_workers', 4),
+        generation_kwargs=generation_kwargs,
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
@@ -189,6 +211,11 @@ def main():
             'vllm_gpu_memory_utilization': config['vllm'].get('gpu_memory_utilization', 0.3),
             'vllm_enable_sleep_mode': config['vllm'].get('enable_sleep_mode', False),
             'vllm_max_model_length': config['vllm'].get('max_model_length', None),
+            # TRL default is True (truncated importance-sampling correction). The
+            # HF-generate runs had no sampler/trainer mismatch, so replication
+            # configs set it False.
+            **({'vllm_importance_sampling_correction': config['vllm']['importance_sampling_correction']}
+               if 'importance_sampling_correction' in config['vllm'] else {}),
         } if use_vllm else {}),
     )
 
@@ -251,6 +278,9 @@ def main():
     # Patch trainer's generate to inject tokenizer for stop_strings support
     # TRL's GRPOTrainer.generate() doesn't pass tokenizer= to model.generate(),
     # but transformers requires it when stop_strings are in generation_config
+    # generation.pad_after_stop: "eos" (default) writes EOS after a stop string (below);
+    # "strip" leaves the pads for the wrapper further down to drop.
+    pad_after_stop = gen_conf.get('pad_after_stop', 'eos')
     _orig_generate_single = trainer._generate_single_turn
     def _patched_generate_single(*args, **kwargs):
         unwrapped = trainer.accelerator.unwrap_model(trainer.model)
@@ -263,7 +293,8 @@ def main():
             # Instruct models), TRL's completion mask never closes and the loss
             # trains on every pad token. Write EOS into the first pad slot of
             # each finished completion so the mask ends there.
-            if tokenizer.pad_token_id != tokenizer.eos_token_id and 'input_ids' in kwargs:
+            if (pad_after_stop == 'eos' and tokenizer.pad_token_id != tokenizer.eos_token_id
+                    and 'input_ids' in kwargs):
                 completion = out[:, kwargs['input_ids'].shape[1]:]
                 is_pad = completion == tokenizer.pad_token_id
                 needs_eos = is_pad.any(dim=1) & ~(completion == tokenizer.eos_token_id).any(dim=1)
@@ -278,6 +309,33 @@ def main():
         return result
     if not use_vllm:
         trainer._generate_single_turn = _patched_generate_single
+
+    # pad_after_stop "strip": drop the trailing pad tokens instead, so a completion
+    # that stopped at </answer> carries no EOS -- what the original 8-GPU runs had (one
+    # completion per GPU, so no padding at all). The replication runs used "strip".
+    pad_id, eos_id = tokenizer.pad_token_id, tokenizer.eos_token_id
+    _inner_generate_single = trainer._generate_single_turn
+
+    def _strip_trailing_pad(ids):
+        end = len(ids)
+        while end > 0 and ids[end - 1] == pad_id:
+            end -= 1
+        return ids[:end]
+
+    def _timed_generate_single(*args, **kwargs):
+        t0 = time.perf_counter()
+        result = _inner_generate_single(*args, **kwargs)
+        mode = "train" if trainer.model.training else "eval"
+        trainer._metrics[mode]["timing/generate_s"].append(time.perf_counter() - t0)
+        if use_vllm or pad_after_stop != 'strip' or pad_id is None or pad_id == eos_id:
+            return result
+        # TRL >=0.29 returns (completion_ids, logprobs); <=0.28 returns
+        # (prompt_ids, completion_ids, logprobs, extra_fields).
+        result = list(result)
+        idx = 0 if len(result) == 2 else 1
+        result[idx] = [_strip_trailing_pad(ids) for ids in result[idx]]
+        return tuple(result)
+    trainer._generate_single_turn = _timed_generate_single
 
     # Train
     print("Starting training...")

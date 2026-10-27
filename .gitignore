@@ -39,3 +39,7 @@ texput.log
 # Paper analysis run artifacts (logs, merged-model baselines)
 experiments/*/paper/data/logs/
 experiments/*/paper/data/baselines/
+
+# study notes (never commit)
+PHASE_*.md
+notes/

@@ -64,6 +64,7 @@ def main():
         output_dir=output_dir,
         learning_rate=float(train_args_conf.get('learning_rate', 2e-5)),
         num_train_epochs=train_args_conf.get('num_train_epochs', 1),
+        max_steps=train_args_conf.get('max_steps', -1),
         bf16=train_args_conf.get('bf16', False),
         logging_steps=train_args_conf.get('logging_steps', 10),
         per_device_train_batch_size=train_args_conf.get('batch_size', 4),
@@ -72,6 +73,8 @@ def main():
         save_steps=train_args_conf.get('save_steps', 50),
         report_to=train_args_conf.get('report_to', []),
         max_length=train_args_conf.get('max_seq_length', train_args_conf.get('max_length', 1024)),
+        seed=config.get('seed', 42),
+        save_only_model=train_args_conf.get('save_only_model', False),
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
@@ -89,7 +92,9 @@ def main():
         tokenizer.pad_token = tokenizer.eos_token
 
     print("Initializing SFTTrainer...")
-    # SFTTrainer automatically masks the user prompt when using 'messages' format.
+    # NOTE: with 'messages' data and TRL defaults (assistant_only_loss=False) the loss
+    # covers ALL tokens, system and user turns included. That is what the original
+    # warm-up ran with; keep it for the replication.
     trainer = SFTTrainer(
         model=model,
         train_dataset=dataset,
