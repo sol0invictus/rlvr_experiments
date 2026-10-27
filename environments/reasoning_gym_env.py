@@ -17,6 +17,7 @@ Config example:
 For use with the existing train_grpo.py infrastructure.
 """
 
+import json
 import re
 from typing import List, Callable, Dict, Any, Optional
 from datasets import Dataset
@@ -92,13 +93,13 @@ class ReasoningGymEnvironment:
                 "prompt": [{"role": "user", "content": item['question']}],
                 "ground_truth": str(item['answer']),
                 "task": self.task_name,
-                "metadata": item.get('metadata', {}),
+                "metadata": json.dumps(item.get('metadata', {})),
             })
-        
+
         print(f"  Generated {len(all_data)} samples")
         if all_data:
             print(f"  Sample answer: {all_data[0]['ground_truth'][:80]}")
-        
+
         return Dataset.from_list(all_data)
     
     def get_val_dataset(self, config: Dict[str, Any]):
@@ -131,7 +132,7 @@ class ReasoningGymEnvironment:
                 "prompt": [{"role": "user", "content": item['question']}],
                 "ground_truth": str(item['answer']),
                 "task": self.task_name,
-                "metadata": item.get('metadata', {}),
+                "metadata": json.dumps(item.get('metadata', {})),
             })
 
         print(f"  Validation set: {len(all_data)} samples")
@@ -183,10 +184,17 @@ class ReasoningGymEnvironment:
                 continue
             
             metadata = metadata_list[i] if i < len(metadata_list) else None
+            if isinstance(metadata, str):
+                try:
+                    metadata = json.loads(metadata)
+                except (json.JSONDecodeError, TypeError):
+                    metadata = None
             
             # Task-specific verification
             if self.task_name == 'countdown':
                 rewards.append(self._verify_countdown(extracted, truth, metadata))
+            elif self.task_name == 'caesar_cipher':
+                rewards.append(self._verify_caesar(extracted, truth))
             else:
                 rewards.append(self._verify_generic(extracted, truth))
         
@@ -334,6 +342,40 @@ class ReasoningGymEnvironment:
         except Exception:
             return 0.0
     
+    def _verify_caesar(self, extracted: str, truth: str) -> float:
+        """
+        Verify caesar cipher with partial credit based on character-level accuracy.
+
+        Returns:
+        - 1.0 for exact match
+        - Partial score (0.0–0.99) based on fraction of matching characters
+        - 0.0 if extracted answer is empty or has no character overlap
+
+        Both strings are lowercased and stripped before comparison.
+        If lengths differ, the score is penalized proportionally.
+        """
+        ext = extracted.strip().lower()
+        truth_norm = truth.strip().lower()
+
+        if not ext or not truth_norm:
+            return 0.0
+
+        # Exact match = full credit
+        if ext == truth_norm:
+            return 1.0
+
+        # Character-level accuracy with length penalty
+        max_len = max(len(ext), len(truth_norm))
+        matching = sum(a == b for a, b in zip(ext, truth_norm))
+        score = matching / max_len
+
+        # Apply a small bonus threshold: if > 95% correct, boost toward 1.0
+        # This creates a sharper gradient near the solution
+        if score > 0.95:
+            score = 0.95 + (score - 0.95) * 1.0  # keep as-is, near 1.0
+
+        return round(score, 4)
+
     def _verify_generic(self, extracted: str, truth: str) -> float:
         """
         Generic verification via normalized string comparison.

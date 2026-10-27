@@ -13,6 +13,7 @@ Config block (inside the top-level YAML):
       eval_steps: 100        # validate every N steps (default 100)
       num_samples: 64        # how many val examples to score (default 64)
       temperature: 0.0       # generation temperature; 0 = greedy (default)
+      batch_size: 16         # prompts per batched generate() call (default 16)
       log_dir: ...           # where to write JSONL (default <output_dir>/validation)
       val_seed: 9999         # seed for val-set generation (ReasoningGym only)
 """
@@ -51,6 +52,8 @@ class ValidationCallback(TrainerCallback):
         If provided, write per-step JSONL logs here.
     temperature : float
         Sampling temperature; 0.0 = greedy decoding.
+    batch_size : int
+        Number of prompts generated per batched generate() call.
     """
 
     def __init__(
@@ -63,6 +66,7 @@ class ValidationCallback(TrainerCallback):
         max_new_tokens: int = 512,
         log_dir: Optional[str] = None,
         temperature: float = 0.0,
+        batch_size: int = 16,
     ):
         self.val_dataset = val_dataset
         self.reward_funcs = reward_funcs
@@ -72,6 +76,7 @@ class ValidationCallback(TrainerCallback):
         self.max_new_tokens = max_new_tokens
         self.log_dir = log_dir
         self.temperature = temperature
+        self.batch_size = batch_size
 
     # ------------------------------------------------------------------
     # TrainerCallback hooks
@@ -177,25 +182,34 @@ class ValidationCallback(TrainerCallback):
         gen_kwargs: Dict[str, Any] = dict(
             max_new_tokens=self.max_new_tokens,
             pad_token_id=self.tokenizer.eos_token_id,
+            # Required when generation_config.stop_strings is set (train_grpo.py does this)
+            tokenizer=self.tokenizer,
         )
         if self.temperature > 0.0:
             gen_kwargs.update(do_sample=True, temperature=self.temperature)
         else:
             gen_kwargs["do_sample"] = False
 
-        with torch.no_grad():
-            for sample in samples:
-                prompt = sample["prompt"]
-                text = self.tokenizer.apply_chat_template(
-                    prompt,
-                    tokenize=False,
-                    add_generation_prompt=True,
-                )
-                inputs = self.tokenizer(text, return_tensors="pt").to(model.device)
-                output_ids = model.generate(**inputs, **gen_kwargs)
-                new_ids = output_ids[0][inputs["input_ids"].shape[1]:]
-                decoded = self.tokenizer.decode(new_ids, skip_special_tokens=True)
-                completions.append([{"role": "assistant", "content": decoded}])
+        # Batched generation with left padding (decoder-only models)
+        orig_side = self.tokenizer.padding_side
+        self.tokenizer.padding_side = "left"
+        try:
+            with torch.no_grad():
+                for start in range(0, len(samples), self.batch_size):
+                    batch = samples[start:start + self.batch_size]
+                    texts = [
+                        self.tokenizer.apply_chat_template(
+                            s["prompt"], tokenize=False, add_generation_prompt=True
+                        )
+                        for s in batch
+                    ]
+                    inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(model.device)
+                    output_ids = model.generate(**inputs, **gen_kwargs)
+                    new_ids = output_ids[:, inputs["input_ids"].shape[1]:]
+                    for decoded in self.tokenizer.batch_decode(new_ids, skip_special_tokens=True):
+                        completions.append([{"role": "assistant", "content": decoded}])
+        finally:
+            self.tokenizer.padding_side = orig_side
 
         model.train()
         return completions

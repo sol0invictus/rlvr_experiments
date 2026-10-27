@@ -60,7 +60,7 @@ training:
 
 # --- Generation (GRPO rollouts) ---
 generation:
-  max_completion_length: 1024
+  max_completion_length: 2048
   num_generations: 8      # Reduced from 8 to fit 4B model on A100
   generation_batch_size: 8
   max_prompt_length: 512

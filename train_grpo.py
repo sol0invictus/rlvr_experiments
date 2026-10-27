@@ -5,31 +5,14 @@ import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
-from environments.gsm8k import GSM8KEnvironment
-from environments.reasoning_gym_env import ReasoningGymEnvironment
+from peft import LoraConfig
+from environments import load_environment
 from callbacks.generation_logger import GenerationLoggingCallback
 from callbacks.validation_callback import ValidationCallback
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
-
-def get_environment(config):
-    env_config = config.get('environment', {})
-    if not env_config:
-        # Fallback for legacy config or direct dataset inference
-        if config.get('data', {}).get('dataset_name') == 'openai/gsm8k':
-            return GSM8KEnvironment(config)
-        else:
-            raise ValueError("Could not determine environment from config.")
-            
-    name = env_config.get('name')
-    if name == 'gsm8k':
-        return GSM8KEnvironment(config)
-    elif name == 'reasoning_gym':
-        return ReasoningGymEnvironment(config)
-    else:
-        raise ValueError(f"Unknown environment: {name}")
 
 
 def parse_args():
@@ -53,7 +36,7 @@ def main():
 
     # Initialize Environment
     print("Initializing Environment...")
-    env = get_environment(config)
+    env = load_environment(config)
     
     # Load and Process Dataset
     dataset = env.get_dataset(config)
@@ -77,6 +60,8 @@ def main():
     if val_conf.get('enabled', False):
         val_dataset = env.get_val_dataset(config)
         if val_dataset is not None:
+            if system_prompt:
+                val_dataset = val_dataset.map(add_system_prompt)
             print(f"[Validation] dataset ready: {len(val_dataset)} samples")
         else:
             print("[Validation] environment does not support get_val_dataset — skipping.")
@@ -127,9 +112,14 @@ def main():
     
     # Configure stop_strings on model's generation_config
     # This makes HF generate() stop as soon as </answer> is produced
+    # Not used with vLLM rollouts: a stop string ends the sequence without EOS,
+    # which TRL's vLLM path treats as truncated. Instruct models emit EOS after
+    # </answer> on their own.
+    use_vllm = config.get('vllm', {}).get('enabled', False)
     stop_strings = config.get('generation', {}).get('stop_strings', ['</answer>'])
-    model.generation_config.stop_strings = stop_strings
-    print(f"  stop_strings: {stop_strings}")
+    if not use_vllm:
+        model.generation_config.stop_strings = stop_strings
+        print(f"  stop_strings: {stop_strings}")
     
     # Training Arguments
     print("Configuring training arguments...")
@@ -142,10 +132,14 @@ def main():
     num_generations = gen_conf.get('num_generations', 4)
     per_device_train_batch_size = training_conf.get('per_device_train_batch_size', 1)
 
-    # generation_batch_size = num_generations * per_device_train_batch_size ensures
-    # all rollouts for a micro-batch are produced in a single forward pass, avoiding
-    # chunked generation that would interleave KV-cache evictions and reloads.
-    generation_batch_size = num_generations * per_device_train_batch_size
+    # Default generation_batch_size = num_generations * per_device_train_batch_size
+    # generates all rollouts for a micro-batch in one pass. Set
+    # generation.generation_batch_size explicitly to make each optimizer step one
+    # fully on-policy generation batch (generation_batch_size =
+    # per_device_train_batch_size * gradient_accumulation_steps).
+    generation_batch_size = gen_conf.get(
+        'generation_batch_size', num_generations * per_device_train_batch_size
+    )
     print(f"  generation_batch_size: {generation_batch_size} "
           f"(num_generations={num_generations} × per_device_bs={per_device_train_batch_size})")
 
@@ -170,7 +164,15 @@ def main():
         save_steps=training_conf.get('save_steps', 10),
         save_total_limit=training_conf.get('save_total_limit', None),
         max_steps=max_steps,
-        warmup_steps=training_conf.get('warmup_steps', 0),
+        # transformers 5 dropped warmup_ratio; warmup_steps < 1 is read as a ratio
+        warmup_steps=training_conf.get('warmup_steps', training_conf.get('warmup_ratio', 0)),
+        weight_decay=training_conf.get('weight_decay', 0.0),
+        scale_rewards=training_conf.get('scale_rewards', 'group'),
+        mask_truncated_completions=training_conf.get('mask_truncated_completions', False),
+        epsilon=training_conf.get('epsilon', 0.2),
+        epsilon_high=training_conf.get('epsilon_high', None),
+        reward_weights=training_conf.get('reward_weights', None),
+        seed=config.get('seed', 42),
         max_grad_norm=training_conf.get('max_grad_norm', 1.0),
         lr_scheduler_type=training_conf.get('lr_scheduler_type', 'cosine'),
         gradient_checkpointing=training_conf.get('gradient_checkpointing', False),
@@ -178,7 +180,33 @@ def main():
         # DDP: disable unused-parameter detection to avoid hangs when some
         # parameters don't receive a gradient on every step (e.g. embeddings).
         ddp_find_unused_parameters=False,
+        num_iterations=training_conf.get('num_iterations', 1),
+        # vLLM rollouts (colocate = same GPU as training; sleep mode frees the
+        # vLLM KV cache during the backward pass)
+        use_vllm=use_vllm,
+        **({
+            'vllm_mode': config['vllm'].get('mode', 'colocate'),
+            'vllm_gpu_memory_utilization': config['vllm'].get('gpu_memory_utilization', 0.3),
+            'vllm_enable_sleep_mode': config['vllm'].get('enable_sleep_mode', False),
+            'vllm_max_model_length': config['vllm'].get('max_model_length', None),
+        } if use_vllm else {}),
     )
+
+    # LoRA (optional). Recommended for RL: all-linear targets, low rank,
+    # ~10x the full-FT learning rate (see experiments/countdown_lora/config.yaml).
+    lora_conf = config.get('lora', {})
+    peft_config = None
+    if lora_conf.get('enabled', False):
+        peft_config = LoraConfig(
+            r=lora_conf.get('r', 16),
+            lora_alpha=lora_conf.get('alpha', 32),
+            lora_dropout=lora_conf.get('dropout', 0.0),
+            target_modules=lora_conf.get('target_modules', 'all-linear'),
+            use_dora=lora_conf.get('use_dora', False),
+            task_type="CAUSAL_LM",
+        )
+        print(f"[LoRA] r={peft_config.r} alpha={peft_config.lora_alpha} "
+              f"targets={peft_config.target_modules} dora={peft_config.use_dora}")
 
     # Validation callback (optional)
     validation_callback = None
@@ -196,6 +224,7 @@ def main():
             max_new_tokens=gen_conf.get('max_completion_length', 512),
             log_dir=val_log_dir,
             temperature=val_conf.get('temperature', 0.0),
+            batch_size=val_conf.get('batch_size', 16),
         )
         print(
             f"[Validation] callback ready — every {val_conf.get('eval_steps', 100)} steps, "
@@ -214,25 +243,41 @@ def main():
         train_dataset=dataset,
         processing_class=tokenizer,
         callbacks=extra_callbacks,
+        peft_config=peft_config,
     )
+    if peft_config is not None:
+        trainer.model.print_trainable_parameters()
 
     # Patch trainer's generate to inject tokenizer for stop_strings support
     # TRL's GRPOTrainer.generate() doesn't pass tokenizer= to model.generate(),
     # but transformers requires it when stop_strings are in generation_config
     _orig_generate_single = trainer._generate_single_turn
-    def _patched_generate_single(prompts):
+    def _patched_generate_single(*args, **kwargs):
         unwrapped = trainer.accelerator.unwrap_model(trainer.model)
         _orig_gen = unwrapped.generate
         def _gen_with_tok(*args, **kwargs):
             kwargs.setdefault('tokenizer', tokenizer)
-            return _orig_gen(*args, **kwargs)
+            out = _orig_gen(*args, **kwargs)
+            # A stop_string ends the sequence without emitting EOS; generate()
+            # then right-fills with pad. When pad != eos (true for Qwen
+            # Instruct models), TRL's completion mask never closes and the loss
+            # trains on every pad token. Write EOS into the first pad slot of
+            # each finished completion so the mask ends there.
+            if tokenizer.pad_token_id != tokenizer.eos_token_id and 'input_ids' in kwargs:
+                completion = out[:, kwargs['input_ids'].shape[1]:]
+                is_pad = completion == tokenizer.pad_token_id
+                needs_eos = is_pad.any(dim=1) & ~(completion == tokenizer.eos_token_id).any(dim=1)
+                rows = needs_eos.nonzero(as_tuple=True)[0]
+                completion[rows, is_pad[rows].int().argmax(dim=1)] = tokenizer.eos_token_id
+            return out
         unwrapped.generate = _gen_with_tok
         try:
-            result = _orig_generate_single(prompts)
+            result = _orig_generate_single(*args, **kwargs)
         finally:
             unwrapped.generate = _orig_gen
         return result
-    trainer._generate_single_turn = _patched_generate_single
+    if not use_vllm:
+        trainer._generate_single_turn = _patched_generate_single
 
     # Train
     print("Starting training...")
