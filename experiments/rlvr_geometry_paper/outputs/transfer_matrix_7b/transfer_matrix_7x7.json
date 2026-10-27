@@ -1,0 +1,85 @@
+{
+  "matrix": {
+    "grpo_qwen25_7b_countdown": {
+      "countdown": 0.65,
+      "maze": 0.05,
+      "mini_sudoku": 0.05,
+      "tower_of_hanoi": 0.04,
+      "shortest_path": 0.01,
+      "basic_arithmetic": 0.52,
+      "syllogism": 0.63
+    },
+    "grpo_qwen25_7b_maze": {
+      "countdown": 0.0,
+      "maze": 0.25,
+      "mini_sudoku": 0.04,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.58,
+      "syllogism": 0.68
+    },
+    "grpo_qwen25_7b_mini_sudoku": {
+      "countdown": 0.11,
+      "maze": 0.13,
+      "mini_sudoku": 0.28,
+      "tower_of_hanoi": 0.05,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.59,
+      "syllogism": 0.57
+    },
+    "grpo_qwen25_7b_tower_of_hanoi": {
+      "countdown": 0.01,
+      "maze": 0.17,
+      "mini_sudoku": 0.08,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.51,
+      "syllogism": 0.62
+    },
+    "grpo_qwen25_7b_shortest_path": {
+      "countdown": 0.01,
+      "maze": 0.15,
+      "mini_sudoku": 0.07,
+      "tower_of_hanoi": 0.09,
+      "shortest_path": 0.36,
+      "basic_arithmetic": 0.54,
+      "syllogism": 0.39
+    },
+    "grpo_qwen25_7b_basic_arithmetic": {
+      "countdown": 0.02,
+      "maze": 0.13,
+      "mini_sudoku": 0.01,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.01,
+      "basic_arithmetic": 0.28,
+      "syllogism": 0.61
+    },
+    "grpo_qwen25_7b_syllogism": {
+      "countdown": 0.03,
+      "maze": 0.2,
+      "mini_sudoku": 0.01,
+      "tower_of_hanoi": 0.03,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.22,
+      "syllogism": 0.93
+    }
+  },
+  "tasks": [
+    "countdown",
+    "maze",
+    "mini_sudoku",
+    "tower_of_hanoi",
+    "shortest_path",
+    "basic_arithmetic",
+    "syllogism"
+  ],
+  "models": [
+    "grpo_qwen25_7b_countdown",
+    "grpo_qwen25_7b_maze",
+    "grpo_qwen25_7b_mini_sudoku",
+    "grpo_qwen25_7b_tower_of_hanoi",
+    "grpo_qwen25_7b_shortest_path",
+    "grpo_qwen25_7b_basic_arithmetic",
+    "grpo_qwen25_7b_syllogism"
+  ]
+}

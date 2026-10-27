@@ -1,0 +1,722 @@
+{
+  "model.layers.0.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 18.891923904418945,
+        "max_deg": 84.47484588623047,
+        "min_deg": 4.969919681549072,
+        "median_deg": 15.096025466918945
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 18.51103401184082,
+        "max_deg": 62.11823272705078,
+        "min_deg": 9.359920501708984,
+        "median_deg": 15.23593521118164
+      },
+      "countdown__syllogism": {
+        "mean_deg": 17.703712463378906,
+        "max_deg": 71.64192962646484,
+        "min_deg": 7.376317977905273,
+        "median_deg": 14.157814979553223
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 19.098899841308594,
+        "max_deg": 80.51091766357422,
+        "min_deg": 6.964720249176025,
+        "median_deg": 15.228509902954102
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 18.422256469726562,
+        "max_deg": 77.38883972167969,
+        "min_deg": 4.378061771392822,
+        "median_deg": 14.122764587402344
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 17.960893630981445,
+        "max_deg": 82.5361557006836,
+        "min_deg": 6.433400630950928,
+        "median_deg": 14.294217109680176
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": -0.1966317892074585,
+      "countdown__caesar_cipher": 0.4103451073169708,
+      "countdown__syllogism": 0.4967990517616272,
+      "basic_arithmetic__caesar_cipher": -0.14374208450317383,
+      "basic_arithmetic__syllogism": -0.359878271818161,
+      "caesar_cipher__syllogism": 0.6325973272323608
+    },
+    "novel_norms": {
+      "countdown": 0.02573855035007,
+      "basic_arithmetic": 0.02661244571208954,
+      "caesar_cipher": 0.026814080774784088,
+      "syllogism": 0.04462422430515289
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.0.self_attn.q_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 45.47703552246094,
+        "max_deg": 87.6095199584961,
+        "min_deg": 7.144298553466797,
+        "median_deg": 44.160858154296875
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 46.079551696777344,
+        "max_deg": 89.45841979980469,
+        "min_deg": 9.061521530151367,
+        "median_deg": 44.770408630371094
+      },
+      "countdown__syllogism": {
+        "mean_deg": 44.649810791015625,
+        "max_deg": 89.60042572021484,
+        "min_deg": 9.731447219848633,
+        "median_deg": 42.6882438659668
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 46.581382751464844,
+        "max_deg": 85.51004028320312,
+        "min_deg": 8.413982391357422,
+        "median_deg": 45.45832443237305
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 44.5900993347168,
+        "max_deg": 88.3086166381836,
+        "min_deg": 8.849287033081055,
+        "median_deg": 43.48991394042969
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 44.68894577026367,
+        "max_deg": 85.33655548095703,
+        "min_deg": 8.792205810546875,
+        "median_deg": 43.03710174560547
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": -0.19617342948913574,
+      "countdown__caesar_cipher": 0.03428150713443756,
+      "countdown__syllogism": -0.23306293785572052,
+      "basic_arithmetic__caesar_cipher": 0.3465540409088135,
+      "basic_arithmetic__syllogism": -0.15721341967582703,
+      "caesar_cipher__syllogism": 0.07102368026971817
+    },
+    "novel_norms": {
+      "countdown": 0.02149786986410618,
+      "basic_arithmetic": 0.020725710317492485,
+      "caesar_cipher": 0.026977520436048508,
+      "syllogism": 0.017811698839068413
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.2.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 25.609451293945312,
+        "max_deg": 88.52417755126953,
+        "min_deg": 9.705288887023926,
+        "median_deg": 18.661788940429688
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 26.752023696899414,
+        "max_deg": 88.50115203857422,
+        "min_deg": 8.52509593963623,
+        "median_deg": 19.373733520507812
+      },
+      "countdown__syllogism": {
+        "mean_deg": 24.63189125061035,
+        "max_deg": 87.97447204589844,
+        "min_deg": 9.135144233703613,
+        "median_deg": 17.586524963378906
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 26.2374267578125,
+        "max_deg": 87.14452362060547,
+        "min_deg": 7.703088760375977,
+        "median_deg": 19.136810302734375
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 24.860610961914062,
+        "max_deg": 89.8439712524414,
+        "min_deg": 8.911164283752441,
+        "median_deg": 17.448429107666016
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 26.182998657226562,
+        "max_deg": 88.45761108398438,
+        "min_deg": 9.388245582580566,
+        "median_deg": 18.392940521240234
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.07993845641613007,
+      "countdown__caesar_cipher": -0.11206330358982086,
+      "countdown__syllogism": -0.04851417988538742,
+      "basic_arithmetic__caesar_cipher": -0.2472197711467743,
+      "basic_arithmetic__syllogism": -0.125301331281662,
+      "caesar_cipher__syllogism": 0.09158124029636383
+    },
+    "novel_norms": {
+      "countdown": 0.021732211112976074,
+      "basic_arithmetic": 0.02243058755993843,
+      "caesar_cipher": 0.02744237706065178,
+      "syllogism": 0.021348662674427032
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.6.mlp.up_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 42.332908630371094,
+        "max_deg": 85.27631378173828,
+        "min_deg": 4.572861194610596,
+        "median_deg": 40.03187561035156
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 42.777835845947266,
+        "max_deg": 89.32818603515625,
+        "min_deg": 3.395287036895752,
+        "median_deg": 40.484619140625
+      },
+      "countdown__syllogism": {
+        "mean_deg": 40.796775817871094,
+        "max_deg": 81.52593994140625,
+        "min_deg": 9.623409271240234,
+        "median_deg": 38.26069259643555
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 42.30974197387695,
+        "max_deg": 89.07434844970703,
+        "min_deg": 6.327099800109863,
+        "median_deg": 39.733219146728516
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 40.211917877197266,
+        "max_deg": 87.7432632446289,
+        "min_deg": 7.8719024658203125,
+        "median_deg": 37.36914825439453
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 40.766685485839844,
+        "max_deg": 84.51224517822266,
+        "min_deg": 8.694815635681152,
+        "median_deg": 37.96619415283203
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": -0.901206374168396,
+      "countdown__caesar_cipher": -0.1273539513349533,
+      "countdown__syllogism": 0.2817704379558563,
+      "basic_arithmetic__caesar_cipher": 0.0762830525636673,
+      "basic_arithmetic__syllogism": -0.398462176322937,
+      "caesar_cipher__syllogism": -0.16247209906578064
+    },
+    "novel_norms": {
+      "countdown": 0.13546480238437653,
+      "basic_arithmetic": 0.11560989171266556,
+      "caesar_cipher": 0.07322407513856888,
+      "syllogism": 0.03647336736321449
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.9.mlp.up_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 43.317378997802734,
+        "max_deg": 88.54335021972656,
+        "min_deg": 9.317681312561035,
+        "median_deg": 40.20226287841797
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 42.9828987121582,
+        "max_deg": 85.78950500488281,
+        "min_deg": 5.089427947998047,
+        "median_deg": 40.52452850341797
+      },
+      "countdown__syllogism": {
+        "mean_deg": 41.470550537109375,
+        "max_deg": 85.2922592163086,
+        "min_deg": 4.2258195877075195,
+        "median_deg": 38.588470458984375
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 42.0737419128418,
+        "max_deg": 88.90349578857422,
+        "min_deg": 6.812500953674316,
+        "median_deg": 39.232337951660156
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 40.77782440185547,
+        "max_deg": 89.97709655761719,
+        "min_deg": 7.109174728393555,
+        "median_deg": 37.721221923828125
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 40.865665435791016,
+        "max_deg": 87.52096557617188,
+        "min_deg": 5.132516860961914,
+        "median_deg": 37.757972717285156
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.5717215538024902,
+      "countdown__caesar_cipher": -0.7524351477622986,
+      "countdown__syllogism": 0.887353241443634,
+      "basic_arithmetic__caesar_cipher": -0.520938515663147,
+      "basic_arithmetic__syllogism": 0.5244848728179932,
+      "caesar_cipher__syllogism": -0.7272360324859619
+    },
+    "novel_norms": {
+      "countdown": 0.10494494438171387,
+      "basic_arithmetic": 0.04472751542925835,
+      "caesar_cipher": 0.07174701988697052,
+      "syllogism": 0.08826380223035812
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.17.mlp.up_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 39.87730407714844,
+        "max_deg": 85.80590057373047,
+        "min_deg": 6.038451194763184,
+        "median_deg": 36.632137298583984
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 39.438655853271484,
+        "max_deg": 88.82527923583984,
+        "min_deg": 6.440863132476807,
+        "median_deg": 36.00490188598633
+      },
+      "countdown__syllogism": {
+        "mean_deg": 39.13216781616211,
+        "max_deg": 84.31037902832031,
+        "min_deg": 6.816845893859863,
+        "median_deg": 35.43917465209961
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 39.15461349487305,
+        "max_deg": 89.4180679321289,
+        "min_deg": 6.149053573608398,
+        "median_deg": 35.52866744995117
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 37.832618713378906,
+        "max_deg": 88.98865509033203,
+        "min_deg": 6.56243896484375,
+        "median_deg": 33.886924743652344
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 37.9930534362793,
+        "max_deg": 86.54074096679688,
+        "min_deg": 5.588931560516357,
+        "median_deg": 34.33275604248047
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": -0.2712235450744629,
+      "countdown__caesar_cipher": 0.5375615358352661,
+      "countdown__syllogism": 0.4056532680988312,
+      "basic_arithmetic__caesar_cipher": -0.44159016013145447,
+      "basic_arithmetic__syllogism": -0.3435264825820923,
+      "caesar_cipher__syllogism": 0.5009828805923462
+    },
+    "novel_norms": {
+      "countdown": 0.02508704550564289,
+      "basic_arithmetic": 0.0305373165756464,
+      "caesar_cipher": 0.03072473220527172,
+      "syllogism": 0.02645765244960785
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.17.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 22.8471736907959,
+        "max_deg": 88.2225341796875,
+        "min_deg": 8.913103103637695,
+        "median_deg": 18.52391815185547
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 22.87371063232422,
+        "max_deg": 79.97541809082031,
+        "min_deg": 5.913672924041748,
+        "median_deg": 18.202945709228516
+      },
+      "countdown__syllogism": {
+        "mean_deg": 22.274343490600586,
+        "max_deg": 87.58695220947266,
+        "min_deg": 6.2424635887146,
+        "median_deg": 17.79935073852539
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 22.640605926513672,
+        "max_deg": 86.98640441894531,
+        "min_deg": 7.753270626068115,
+        "median_deg": 17.912887573242188
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 22.14789581298828,
+        "max_deg": 87.77584075927734,
+        "min_deg": 5.163345813751221,
+        "median_deg": 17.14111328125
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 21.771188735961914,
+        "max_deg": 86.87033081054688,
+        "min_deg": 6.751394271850586,
+        "median_deg": 17.049251556396484
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.16558672487735748,
+      "countdown__caesar_cipher": 0.2708781957626343,
+      "countdown__syllogism": -0.27727070450782776,
+      "basic_arithmetic__caesar_cipher": 0.21961374580860138,
+      "basic_arithmetic__syllogism": -0.34928128123283386,
+      "caesar_cipher__syllogism": -0.3469327688217163
+    },
+    "novel_norms": {
+      "countdown": 0.026006191968917847,
+      "basic_arithmetic": 0.027320627123117447,
+      "caesar_cipher": 0.028638800606131554,
+      "syllogism": 0.034446269273757935
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.18.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 20.302810668945312,
+        "max_deg": 75.52650451660156,
+        "min_deg": 5.340746879577637,
+        "median_deg": 16.929737091064453
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 20.242055892944336,
+        "max_deg": 89.84844970703125,
+        "min_deg": 4.2907609939575195,
+        "median_deg": 16.67711639404297
+      },
+      "countdown__syllogism": {
+        "mean_deg": 19.659690856933594,
+        "max_deg": 87.26860809326172,
+        "min_deg": 6.723449230194092,
+        "median_deg": 15.96916389465332
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 20.048280715942383,
+        "max_deg": 75.23442077636719,
+        "min_deg": 4.860227108001709,
+        "median_deg": 16.151634216308594
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 19.125686645507812,
+        "max_deg": 75.5866928100586,
+        "min_deg": 3.2721948623657227,
+        "median_deg": 15.593059539794922
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 18.495471954345703,
+        "max_deg": 77.66323852539062,
+        "min_deg": 6.383711814880371,
+        "median_deg": 15.10090446472168
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": -0.39528003334999084,
+      "countdown__caesar_cipher": 0.6743821501731873,
+      "countdown__syllogism": -0.48034733533859253,
+      "basic_arithmetic__caesar_cipher": -0.6839799880981445,
+      "basic_arithmetic__syllogism": 0.7743625640869141,
+      "caesar_cipher__syllogism": -0.6706631779670715
+    },
+    "novel_norms": {
+      "countdown": 0.04320346191525459,
+      "basic_arithmetic": 0.06031520664691925,
+      "caesar_cipher": 0.04326711967587471,
+      "syllogism": 0.04644560441374779
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.19.mlp.up_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 36.73759460449219,
+        "max_deg": 84.76932525634766,
+        "min_deg": 12.873311996459961,
+        "median_deg": 32.66063690185547
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 35.902652740478516,
+        "max_deg": 86.30371856689453,
+        "min_deg": 13.369047164916992,
+        "median_deg": 31.367259979248047
+      },
+      "countdown__syllogism": {
+        "mean_deg": 35.32390213012695,
+        "max_deg": 81.45753479003906,
+        "min_deg": 12.271088600158691,
+        "median_deg": 31.296585083007812
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 35.450809478759766,
+        "max_deg": 79.23152923583984,
+        "min_deg": 10.036992073059082,
+        "median_deg": 31.023239135742188
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 34.61260986328125,
+        "max_deg": 80.92671966552734,
+        "min_deg": 7.9527058601379395,
+        "median_deg": 30.287574768066406
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 34.11996078491211,
+        "max_deg": 86.95988464355469,
+        "min_deg": 10.465593338012695,
+        "median_deg": 29.623401641845703
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.3090347647666931,
+      "countdown__caesar_cipher": -0.2687514126300812,
+      "countdown__syllogism": 0.24062642455101013,
+      "basic_arithmetic__caesar_cipher": -0.39343446493148804,
+      "basic_arithmetic__syllogism": 0.48071524500846863,
+      "caesar_cipher__syllogism": -0.37856629490852356
+    },
+    "novel_norms": {
+      "countdown": 0.019867774099111557,
+      "basic_arithmetic": 0.022854268550872803,
+      "caesar_cipher": 0.02378964051604271,
+      "syllogism": 0.023778332397341728
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.27.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 29.588117599487305,
+        "max_deg": 86.90400695800781,
+        "min_deg": 7.949667930603027,
+        "median_deg": 25.24774169921875
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 30.01290512084961,
+        "max_deg": 88.16754913330078,
+        "min_deg": 9.422603607177734,
+        "median_deg": 25.625850677490234
+      },
+      "countdown__syllogism": {
+        "mean_deg": 28.735868453979492,
+        "max_deg": 88.92141723632812,
+        "min_deg": 7.99107027053833,
+        "median_deg": 23.95303726196289
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 29.33462142944336,
+        "max_deg": 88.31265258789062,
+        "min_deg": 7.611125946044922,
+        "median_deg": 24.804851531982422
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 27.63835906982422,
+        "max_deg": 78.80135345458984,
+        "min_deg": 6.741015911102295,
+        "median_deg": 22.940340042114258
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 27.92812728881836,
+        "max_deg": 86.58583068847656,
+        "min_deg": 6.193686485290527,
+        "median_deg": 23.048519134521484
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.12096937745809555,
+      "countdown__caesar_cipher": 0.05079099163413048,
+      "countdown__syllogism": 0.1069553792476654,
+      "basic_arithmetic__caesar_cipher": -0.1521495133638382,
+      "basic_arithmetic__syllogism": 0.10722614824771881,
+      "caesar_cipher__syllogism": 0.3489479422569275
+    },
+    "novel_norms": {
+      "countdown": 0.029908938333392143,
+      "basic_arithmetic": 0.031030915677547455,
+      "caesar_cipher": 0.03311605751514435,
+      "syllogism": 0.041050855070352554
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.35.mlp.down_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 28.966581344604492,
+        "max_deg": 86.11875915527344,
+        "min_deg": 3.3640050888061523,
+        "median_deg": 23.66107940673828
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 30.485502243041992,
+        "max_deg": 87.12603759765625,
+        "min_deg": 4.977718353271484,
+        "median_deg": 24.939504623413086
+      },
+      "countdown__syllogism": {
+        "mean_deg": 28.16205596923828,
+        "max_deg": 84.68228149414062,
+        "min_deg": 2.7685959339141846,
+        "median_deg": 22.668071746826172
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 29.21982192993164,
+        "max_deg": 81.9478988647461,
+        "min_deg": 4.920835971832275,
+        "median_deg": 24.325809478759766
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 26.942819595336914,
+        "max_deg": 79.5688247680664,
+        "min_deg": 3.6623339653015137,
+        "median_deg": 21.812484741210938
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 28.042448043823242,
+        "max_deg": 82.25855255126953,
+        "min_deg": 5.289279460906982,
+        "median_deg": 22.488933563232422
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.794666588306427,
+      "countdown__caesar_cipher": 0.7555511593818665,
+      "countdown__syllogism": -0.5884207487106323,
+      "basic_arithmetic__caesar_cipher": 0.7813157439231873,
+      "basic_arithmetic__syllogism": -0.5818572640419006,
+      "caesar_cipher__syllogism": -0.527381181716919
+    },
+    "novel_norms": {
+      "countdown": 0.07279464602470398,
+      "basic_arithmetic": 0.0622747465968132,
+      "caesar_cipher": 0.0662526860833168,
+      "syllogism": 0.0784989520907402
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  },
+  "model.layers.35.self_attn.q_proj.weight": {
+    "pair_angles": {
+      "countdown__basic_arithmetic": {
+        "mean_deg": 42.0928840637207,
+        "max_deg": 83.70875549316406,
+        "min_deg": 7.381450176239014,
+        "median_deg": 41.929752349853516
+      },
+      "countdown__caesar_cipher": {
+        "mean_deg": 42.489402770996094,
+        "max_deg": 88.50702667236328,
+        "min_deg": 7.059691905975342,
+        "median_deg": 42.10038757324219
+      },
+      "countdown__syllogism": {
+        "mean_deg": 39.80495834350586,
+        "max_deg": 85.04512786865234,
+        "min_deg": 7.5069193840026855,
+        "median_deg": 38.717918395996094
+      },
+      "basic_arithmetic__caesar_cipher": {
+        "mean_deg": 41.175994873046875,
+        "max_deg": 86.0698013305664,
+        "min_deg": 8.20398998260498,
+        "median_deg": 40.281158447265625
+      },
+      "basic_arithmetic__syllogism": {
+        "mean_deg": 38.014129638671875,
+        "max_deg": 84.35739135742188,
+        "min_deg": 8.474332809448242,
+        "median_deg": 36.295814514160156
+      },
+      "caesar_cipher__syllogism": {
+        "mean_deg": 37.94383239746094,
+        "max_deg": 89.08639526367188,
+        "min_deg": 6.885297775268555,
+        "median_deg": 36.21938705444336
+      }
+    },
+    "pair_cos": {
+      "countdown__basic_arithmetic": 0.020277466624975204,
+      "countdown__caesar_cipher": -0.23602956533432007,
+      "countdown__syllogism": 0.3057067096233368,
+      "basic_arithmetic__caesar_cipher": 0.29200994968414307,
+      "basic_arithmetic__syllogism": -0.15861257910728455,
+      "caesar_cipher__syllogism": -0.4904654026031494
+    },
+    "novel_norms": {
+      "countdown": 0.03337506949901581,
+      "basic_arithmetic": 0.03199652209877968,
+      "caesar_cipher": 0.02994322031736374,
+      "syllogism": 0.025200866162776947
+    },
+    "effective_ranks": {
+      "countdown": 100,
+      "basic_arithmetic": 100,
+      "caesar_cipher": 100,
+      "syllogism": 100
+    }
+  }
+}

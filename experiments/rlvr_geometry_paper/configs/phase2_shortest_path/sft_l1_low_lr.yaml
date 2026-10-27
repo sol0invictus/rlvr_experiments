@@ -1,0 +1,18 @@
+model:
+  name_or_path: /scratch/sunguha/sft_qwen_4.0b_instruct
+  torch_dtype: bfloat16
+sft:
+  output_file: experiments/rlvr_geometry_paper/results/phase2_sp/sft_l1_data.jsonl
+  output_dir: experiments/rlvr_geometry_paper/results/phase2_sp/sft_l1_lowlr
+sft_training:
+  output_dir: experiments/rlvr_geometry_paper/results/phase2_sp/sft_l1_lowlr
+  learning_rate: 5.0e-06
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 10
+  batch_size: 4
+  gradient_accumulation_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  report_to: []
+  max_seq_length: 1024

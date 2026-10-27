@@ -6,6 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 See [./research_plan/research_plan.md](research_plan.md) for the full research agenda: *SkillThink — Compositional Latent Reasoning in Small LMs via Hierarchical RLVR*.
 
+## Repository layout
+
+- Root: the shared framework — `train_grpo.py`, `train_sft.py`, `evaluate*.py`, `environments/`,
+  `callbacks/`, `data_gen/`, and general-purpose `configs/` (incl. `hp_sweep/` for `run_sweep.sh`).
+- `experiments/` — one folder per study; see `experiments/README.md` for the index and conventions:
+  - `experiments/rlvr_geometry_paper/` — the study behind the paper *"The Geometry and Transfer of
+    RLVR in Small Reasoning Models"*, with everything paper-specific (LaTeX, figures,
+    figure/analysis scripts, drafts, data) in its single `paper/` folder (see `paper/CLAUDE.md`),
+    plus per-phase reports in `reports/`, training configs, and run/eval scripts.
+  - `experiments/countdown_lora/` — LoRA+GRPO countdown on Qwen3-4B (config + dated notes).
+  - `experiments/cer_project/` — Competence-Edge Routing study.
+- Run everything from the repo root; configs and scripts use repo-root-relative paths. Scripts in
+  `experiments/` import `environments`/`callbacks`, so install the repo once per venv:
+  `uv pip install --python .venv-vllm/bin/python --no-deps -e .`
+- Checkpoints and logs (`results/`, `outputs/`, `runs/`, also inside each experiment) are gitignored;
+  small analysis results the paper depends on are whitelisted in `.gitignore`.
+
+`environments.load_environment(config)` is the single environment dispatcher (`gsm8k`,
+`reasoning_gym`, `atomic`, `partial_credit_sp`, `feasible_only_sp`); add new environments there.
+
 ## Overview
 
 This is an RLVR (Reinforcement Learning with Verifiable Rewards) research framework for training small language models (primarily Qwen2-0.5B) on reasoning tasks. Models output reasoning in `<think>...</think><answer>...</answer>` format. Training supports two paradigms: SFT (supervised fine-tuning on generated traces) and GRPO (Group Relative Policy Optimization with task reward signals).

@@ -1,0 +1,31 @@
+{
+  "model": "/code-fsx/sunguha/rlvr_experiments/outputs/sft_qwen25_3b",
+  "num_samples": 50,
+  "seed": 9999,
+  "per_atom": {
+    "L1_locate_start": {
+      "accuracy": 0.0
+    },
+    "L1_locate_goal": {
+      "accuracy": 0.0
+    },
+    "L1_read_cell": {
+      "accuracy": 0.16
+    },
+    "L1_grid_size": {
+      "accuracy": 0.0
+    },
+    "L2_valid_moves": {
+      "accuracy": 0.06
+    },
+    "L2_is_move_valid": {
+      "accuracy": 0.38
+    },
+    "L2_shortest_path_length": {
+      "accuracy": 0.02
+    }
+  },
+  "L1_avg": 0.04,
+  "L2_avg": 0.15333333333333335,
+  "ARS": 0.09666666666666668
+}

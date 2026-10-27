@@ -1,0 +1,228 @@
+{
+  "step": 320,
+  "total_tokens": 3931,
+  "mean_entropy": 0.35050955586594684,
+  "mean_grad_proxy": 0.29963835040477405,
+  "bins": [
+    {
+      "bin": 0,
+      "entropy_lo": 0.0,
+      "entropy_hi": 0.10006827344826504,
+      "count": 2140,
+      "mean_grad_proxy": 0.014588496023274966,
+      "std_grad_proxy": 0.2654079565928118,
+      "median_grad_proxy": 1.9363829778740183e-05,
+      "mean_entropy": 0.01271516545476651,
+      "mean_advantage": 0.8413485289107416
+    },
+    {
+      "bin": 1,
+      "entropy_lo": 0.10006827344826504,
+      "entropy_hi": 0.20013654689653007,
+      "count": 244,
+      "mean_grad_proxy": 0.050562921882851324,
+      "std_grad_proxy": 0.27995436448212496,
+      "median_grad_proxy": 0.02641183789819479,
+      "mean_entropy": 0.14908438270575688,
+      "mean_advantage": 0.8393988287473311
+    },
+    {
+      "bin": 2,
+      "entropy_lo": 0.20013654689653007,
+      "entropy_hi": 0.3002048203447951,
+      "count": 166,
+      "mean_grad_proxy": 0.15681131242449026,
+      "std_grad_proxy": 0.5931575049139256,
+      "median_grad_proxy": 0.04815233312547207,
+      "mean_entropy": 0.24617465396961533,
+      "mean_advantage": 0.7897680519395563
+    },
+    {
+      "bin": 3,
+      "entropy_lo": 0.3002048203447951,
+      "entropy_hi": 0.40027309379306014,
+      "count": 124,
+      "mean_grad_proxy": 0.3937390317028809,
+      "std_grad_proxy": 1.0889019315903898,
+      "median_grad_proxy": 0.07937626540660858,
+      "mean_entropy": 0.34598570124756906,
+      "mean_advantage": 0.8035240938826915
+    },
+    {
+      "bin": 4,
+      "entropy_lo": 0.40027309379306014,
+      "entropy_hi": 0.5003413672413252,
+      "count": 130,
+      "mean_grad_proxy": 0.3207642131556685,
+      "std_grad_proxy": 0.7972723546934897,
+      "median_grad_proxy": 0.11633928492665291,
+      "mean_entropy": 0.45097220287873196,
+      "mean_advantage": 0.8046969277354387
+    },
+    {
+      "bin": 5,
+      "entropy_lo": 0.5003413672413252,
+      "entropy_hi": 0.6004096406895902,
+      "count": 120,
+      "mean_grad_proxy": 0.40284660800049704,
+      "std_grad_proxy": 0.7918339911781418,
+      "median_grad_proxy": 0.1653708517551422,
+      "mean_entropy": 0.5473826989531517,
+      "mean_advantage": 0.7724828937401375
+    },
+    {
+      "bin": 6,
+      "entropy_lo": 0.6004096406895902,
+      "entropy_hi": 0.7004779141378552,
+      "count": 141,
+      "mean_grad_proxy": 0.43617196621518606,
+      "std_grad_proxy": 0.574058215045272,
+      "median_grad_proxy": 0.27513638138771057,
+      "mean_entropy": 0.6515050839025078,
+      "mean_advantage": 0.8081979198870084
+    },
+    {
+      "bin": 7,
+      "entropy_lo": 0.7004779141378552,
+      "entropy_hi": 0.8005461875861203,
+      "count": 176,
+      "mean_grad_proxy": 0.5320301073476333,
+      "std_grad_proxy": 0.6558840536391164,
+      "median_grad_proxy": 0.3304522782564163,
+      "mean_entropy": 0.7474874806675044,
+      "mean_advantage": 0.7981309065256607
+    },
+    {
+      "bin": 8,
+      "entropy_lo": 0.8005461875861203,
+      "entropy_hi": 0.9006144610343854,
+      "count": 110,
+      "mean_grad_proxy": 1.050535963712768,
+      "std_grad_proxy": 1.769698990177583,
+      "median_grad_proxy": 0.4190743565559387,
+      "mean_entropy": 0.8524883432821794,
+      "mean_advantage": 0.8901258942755785
+    },
+    {
+      "bin": 9,
+      "entropy_lo": 0.9006144610343854,
+      "entropy_hi": 1.0006827344826503,
+      "count": 102,
+      "mean_grad_proxy": 0.8819849914049401,
+      "std_grad_proxy": 1.0978090937661642,
+      "median_grad_proxy": 0.46853452920913696,
+      "mean_entropy": 0.9507769603355258,
+      "mean_advantage": 0.9175238718881327
+    },
+    {
+      "bin": 10,
+      "entropy_lo": 1.0006827344826503,
+      "entropy_hi": 1.1007510079309153,
+      "count": 71,
+      "mean_grad_proxy": 0.9306030775039968,
+      "std_grad_proxy": 1.1681835173642785,
+      "median_grad_proxy": 0.5187302231788635,
+      "mean_entropy": 1.0435236642058467,
+      "mean_advantage": 0.816319850129141
+    },
+    {
+      "bin": 11,
+      "entropy_lo": 1.1007510079309153,
+      "entropy_hi": 1.2008192813791805,
+      "count": 77,
+      "mean_grad_proxy": 1.2549400135100661,
+      "std_grad_proxy": 1.5167960439077195,
+      "median_grad_proxy": 0.6795794367790222,
+      "mean_entropy": 1.1548730429116782,
+      "mean_advantage": 0.9143469724562261
+    },
+    {
+      "bin": 12,
+      "entropy_lo": 1.2008192813791805,
+      "entropy_hi": 1.3008875548274454,
+      "count": 58,
+      "mean_grad_proxy": 0.9328879161641516,
+      "std_grad_proxy": 0.750403446506033,
+      "median_grad_proxy": 0.7390467524528503,
+      "mean_entropy": 1.2500874585118786,
+      "mean_advantage": 0.8201735741619406
+    },
+    {
+      "bin": 13,
+      "entropy_lo": 1.3008875548274454,
+      "entropy_hi": 1.4009558282757104,
+      "count": 49,
+      "mean_grad_proxy": 1.17693614686022,
+      "std_grad_proxy": 1.1529498569119017,
+      "median_grad_proxy": 0.7888656258583069,
+      "mean_entropy": 1.3491443687555742,
+      "mean_advantage": 0.8629141069796621
+    },
+    {
+      "bin": 14,
+      "entropy_lo": 1.4009558282757104,
+      "entropy_hi": 1.5010241017239756,
+      "count": 45,
+      "mean_grad_proxy": 1.2323728442192077,
+      "std_grad_proxy": 1.0641818051244518,
+      "median_grad_proxy": 0.857114851474762,
+      "mean_entropy": 1.4567244503233168,
+      "mean_advantage": 0.834505268269115
+    },
+    {
+      "bin": 15,
+      "entropy_lo": 1.5010241017239756,
+      "entropy_hi": 1.6010923751722406,
+      "count": 35,
+      "mean_grad_proxy": 1.4444004944392612,
+      "std_grad_proxy": 1.223255400524687,
+      "median_grad_proxy": 1.075851321220398,
+      "mean_entropy": 1.5445196901048932,
+      "mean_advantage": 0.8179945447615214
+    },
+    {
+      "bin": 16,
+      "entropy_lo": 1.6010923751722406,
+      "entropy_hi": 1.7011606486205055,
+      "count": 36,
+      "mean_grad_proxy": 1.3532461399833362,
+      "std_grad_proxy": 1.0129753742331178,
+      "median_grad_proxy": 1.1922468543052673,
+      "mean_entropy": 1.6505098011758592,
+      "mean_advantage": 0.8367284503248003
+    },
+    {
+      "bin": 17,
+      "entropy_lo": 1.7011606486205055,
+      "entropy_hi": 1.8012289220687707,
+      "count": 31,
+      "mean_grad_proxy": 1.4080899530841458,
+      "std_grad_proxy": 0.7248918718161025,
+      "median_grad_proxy": 1.3778736591339111,
+      "mean_entropy": 1.745875616227427,
+      "mean_advantage": 0.9040551291358087
+    },
+    {
+      "bin": 18,
+      "entropy_lo": 1.8012289220687707,
+      "entropy_hi": 1.9012971955170357,
+      "count": 22,
+      "mean_grad_proxy": 1.880244219167666,
+      "std_grad_proxy": 1.1148628760853834,
+      "median_grad_proxy": 1.9334850311279297,
+      "mean_entropy": 1.8643142201683738,
+      "mean_advantage": 0.9559237611564723
+    },
+    {
+      "bin": 19,
+      "entropy_lo": 1.9012971955170357,
+      "entropy_hi": 2.0013654689653007,
+      "count": 54,
+      "mean_grad_proxy": 1.7507963649652623,
+      "std_grad_proxy": 1.1714832157694302,
+      "median_grad_proxy": 1.3779576420783997,
+      "mean_entropy": 2.1521992484728494,
+      "mean_advantage": 0.8456137177568895
+    }
+  ]
+}

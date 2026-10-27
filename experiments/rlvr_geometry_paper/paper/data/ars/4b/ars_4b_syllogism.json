@@ -1,0 +1,31 @@
+{
+  "model": "/code-fsx/sunguha/sft_qwen_4.0b_instruct",
+  "num_samples": 50,
+  "seed": 9999,
+  "per_atom": {
+    "L1_premise1_subject": {
+      "accuracy": 1.0
+    },
+    "L1_premise2_subject": {
+      "accuracy": 1.0
+    },
+    "L1_quantifier_type": {
+      "accuracy": 0.86
+    },
+    "L1_conclusion_predicate": {
+      "accuracy": 0.98
+    },
+    "L2_single_hop_inference": {
+      "accuracy": 0.46
+    },
+    "L2_negation": {
+      "accuracy": 0.42
+    },
+    "L2_validity_check": {
+      "accuracy": 0.68
+    }
+  },
+  "L1_avg": 0.96,
+  "L2_avg": 0.52,
+  "ARS": 0.74
+}

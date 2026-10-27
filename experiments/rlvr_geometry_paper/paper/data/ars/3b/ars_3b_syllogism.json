@@ -1,0 +1,31 @@
+{
+  "model": "/code-fsx/sunguha/rlvr_experiments/outputs/sft_qwen25_3b",
+  "num_samples": 50,
+  "seed": 9999,
+  "per_atom": {
+    "L1_premise1_subject": {
+      "accuracy": 0.66
+    },
+    "L1_premise2_subject": {
+      "accuracy": 0.64
+    },
+    "L1_quantifier_type": {
+      "accuracy": 0.8
+    },
+    "L1_conclusion_predicate": {
+      "accuracy": 0.24
+    },
+    "L2_single_hop_inference": {
+      "accuracy": 0.64
+    },
+    "L2_negation": {
+      "accuracy": 0.2
+    },
+    "L2_validity_check": {
+      "accuracy": 0.54
+    }
+  },
+  "L1_avg": 0.585,
+  "L2_avg": 0.46,
+  "ARS": 0.5225
+}

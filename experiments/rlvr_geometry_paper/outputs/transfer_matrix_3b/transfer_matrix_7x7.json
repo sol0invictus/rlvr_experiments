@@ -1,0 +1,85 @@
+{
+  "matrix": {
+    "grpo_qwen25_3b_countdown": {
+      "countdown": 0.11,
+      "maze": 0.08,
+      "mini_sudoku": 0.01,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.03,
+      "basic_arithmetic": 0.35,
+      "syllogism": 0.8
+    },
+    "grpo_qwen25_3b_maze": {
+      "countdown": 0.0,
+      "maze": 0.16,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.03,
+      "basic_arithmetic": 0.39,
+      "syllogism": 0.83
+    },
+    "grpo_qwen25_3b_mini_sudoku": {
+      "countdown": 0.0,
+      "maze": 0.09,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.29,
+      "syllogism": 0.72
+    },
+    "grpo_qwen25_3b_tower_of_hanoi": {
+      "countdown": 0.0,
+      "maze": 0.03,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.0,
+      "basic_arithmetic": 0.48,
+      "syllogism": 0.74
+    },
+    "grpo_qwen25_3b_shortest_path": {
+      "countdown": 0.0,
+      "maze": 0.07,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.36,
+      "basic_arithmetic": 0.38,
+      "syllogism": 0.73
+    },
+    "grpo_qwen25_3b_basic_arithmetic": {
+      "countdown": 0.01,
+      "maze": 0.05,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.01,
+      "basic_arithmetic": 0.32,
+      "syllogism": 0.87
+    },
+    "grpo_qwen25_3b_syllogism": {
+      "countdown": 0.0,
+      "maze": 0.11,
+      "mini_sudoku": 0.0,
+      "tower_of_hanoi": 0.0,
+      "shortest_path": 0.01,
+      "basic_arithmetic": 0.26,
+      "syllogism": 0.9
+    }
+  },
+  "tasks": [
+    "countdown",
+    "maze",
+    "mini_sudoku",
+    "tower_of_hanoi",
+    "shortest_path",
+    "basic_arithmetic",
+    "syllogism"
+  ],
+  "models": [
+    "grpo_qwen25_3b_countdown",
+    "grpo_qwen25_3b_maze",
+    "grpo_qwen25_3b_mini_sudoku",
+    "grpo_qwen25_3b_tower_of_hanoi",
+    "grpo_qwen25_3b_shortest_path",
+    "grpo_qwen25_3b_basic_arithmetic",
+    "grpo_qwen25_3b_syllogism"
+  ]
+}

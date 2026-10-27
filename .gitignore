@@ -1,6 +1,41 @@
+# Python / environments
 __pycache__/
+*.pyc
+.venv*/
+*.egg-info/
+.DS_Store
+
+# Training artifacts: checkpoints, tensorboard runs, model outputs (large).
+# Small analysis results that the paper and reports depend on are re-included.
 Qwen2-0.5B-GRPO-General/
-output*/
 saved_models/
-results*/
 runs*/
+checkpoint-*/
+*.safetensors
+*.pt
+*.bin
+
+/results*/
+/output*/
+/experiments/*/results*/*
+/experiments/*/output*/*
+!/experiments/rlvr_geometry_paper/results/weight_analysis/
+!/experiments/rlvr_geometry_paper/outputs/transfer_matrix*/
+!/experiments/rlvr_geometry_paper/outputs/*.json
+!/experiments/rlvr_geometry_paper/outputs/*.png
+!/experiments/cer_project/results/phase1_diagnostics/
+!/experiments/cer_project/results/*.png
+
+# LaTeX build intermediates (main.pdf and main.bbl stay tracked)
+experiments/*/paper/*.aux
+experiments/*/paper/*.log
+experiments/*/paper/*.out
+experiments/*/paper/*.blg
+experiments/*/paper/*.fls
+experiments/*/paper/*.fdb_latexmk
+experiments/*/paper/*.synctex.gz
+texput.log
+
+# Paper analysis run artifacts (logs, merged-model baselines)
+experiments/*/paper/data/logs/
+experiments/*/paper/data/baselines/

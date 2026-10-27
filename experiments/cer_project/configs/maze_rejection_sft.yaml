@@ -1,0 +1,50 @@
+model:
+  name_or_path: /code-fsx/sunguha/models/Qwen2.5-3B-Instruct
+  torch_dtype: bfloat16
+  attn_implementation: flash_attention_2
+
+environment:
+  name: reasoning_gym
+  task_name: maze
+  samples: 5000
+  length_penalty: true
+  max_rollout_length: 2048
+  task_params:
+    cols: 5
+    rows: 5
+
+seed: 42
+
+system_prompt: |
+  You are a helpful assistant. You must always think step-by-step. Put your thinking process inside <think> and </think> tags, and put your final answer inside <answer> and </answer> tags.
+
+training:
+  output_dir: /scratch/sunguha/cer_project/maze_rejection_sft
+  learning_rate: 3.0e-6
+  loss_type: grpo
+  beta: 0.04
+  gradient_accumulation_steps: 2
+  per_device_train_batch_size: 1
+  num_train_epochs: 2
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 50
+  max_steps: 300
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  lr_scheduler_type: constant
+  gradient_checkpointing: true
+  mask_truncated_completions: false
+  report_to:
+    - tensorboard
+
+generation:
+  max_completion_length: 2048
+  temperature: 0.8
+  num_generations: 8
+  generation_batch_size: 8
+
+rejection_sft:
+  kl_weight: 0.04
+  log_every_n_steps: 5

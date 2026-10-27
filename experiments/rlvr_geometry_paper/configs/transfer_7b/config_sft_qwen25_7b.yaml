@@ -1,0 +1,32 @@
+# ============================================================================
+# SFT Warmup: Qwen2.5-7B-Instruct -> learn <think>/<answer> format
+# ============================================================================
+# Usage:
+#   torchrun --standalone --nproc_per_node=8 train_sft.py experiments/rlvr_geometry_paper/configs/transfer_7b/config_sft_qwen25_7b.yaml
+#
+# Teaches the instruct model the structured <think>/<answer> output format
+# before GRPO training, using task-agnostic warmup data.
+#
+# Hardware: 8x B200 (P6)
+# ============================================================================
+
+model:
+  name_or_path: /scratch/sunguha/models/Qwen2.5-7B-Instruct
+  torch_dtype: bfloat16
+
+sft:
+  output_file: data_gen/data/sft_warmup.jsonl
+  output_dir: experiments/rlvr_geometry_paper/outputs/sft_qwen25_7b
+
+sft_training:
+  output_dir: experiments/rlvr_geometry_paper/outputs/sft_qwen25_7b
+  learning_rate: 2.0e-5
+  num_train_epochs: 3
+  bf16: true
+  logging_steps: 10
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  save_strategy: epoch
+  save_steps: 50
+  max_seq_length: 1024
+  report_to: tensorboard

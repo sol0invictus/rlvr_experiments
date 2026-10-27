@@ -1,0 +1,179 @@
+{
+  "leg_counting": [
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 cats, 4 leechs, 11 ducks, 13 horses?\n",
+      "ground_truth": "94",
+      "response": " many legs are there in total if you have 5 cats, 4 leechs, 11 ducks, 13 horses?\n\nassistant\nI'll solve this step by step:\n\n1) First, I need to know how many legs each type of animal has:\n- Cats have 4 legs each\n- Leeches have 0 legs (they're parasitic worms, not mammals)\n- Ducks have 2 legs each\n- Horses have 4 legs each\n\n2) Calculate legs for each animal type:\n- 5 cats \u00d7 4 legs = 20 legs\n- 4 leeches \u00d7 0 legs = 0 legs\n- 11 ducks \u00d7 2 legs = 22 legs\n- 13 horses \u00d7 4 legs = 52 legs\n\n3) Add them all ",
+      "extracted": "94",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 sheeps, 8 dogs, 15 lobsters, 3 cats, 4 ants, 9 bees, 4 cockroa",
+      "ground_truth": "316",
+      "response": " cats, 4 ants, 9 bees, 4 cockroachs?\n\nassistant\n<tool_call>...<tool_call>\nLet's go through each animal and count their legs:\n\n1. Sheep: Each sheep has 4 legs.  \n   5 sheep \u00d7 4 = 20 legs\n\n2. Dogs: Each dog has 4 legs.  \n   8 dogs \u00d7 4 = 32 legs\n\n3. Lobsters: Each lobster has 10 legs.  \n   15 lobsters \u00d7 10 = 150 legs\n\n4. Cats: Each cat has 4 legs.  \n   3 cats \u00d7 4 = 12 legs\n\n5. Ants: Each ant has 6 legs.  \n   4 ants \u00d7 6 = 24 legs\n\n6. Bees: Each bee has 6 legs.  \n   9 bees \u00d7 6 = 54 legs\n\n7. Cockroach",
+      "extracted": "316",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 elephants, 3 crabs, 10 shrimps, 4 lobsters, 5 wasps?\n",
+      "ground_truth": "220",
+      "response": ", 3 crabs, 10 shrimps, 4 lobsters, 5 wasps?\n\nassistant\n<tool_call> Start by determining the number of legs each animal has:\n- Elephants have 4 legs each.\n- Crabs have 10 legs each.\n- Shrimps have 10 legs each.\n- Lobsters have 10 legs each.\n- Wasps have 6 legs each.\n\nNow, calculate the total legs for each animal:\n- 5 elephants \u00d7 4 legs = 20 legs\n- 3 crabs \u00d7 10 legs = 30 legs\n- 10 shrimps \u00d7 10 legs = 100 legs\n- 4 lobsters \u00d7 10 legs = 40 legs\n- 5 wasps \u00d7 6 legs = 30 legs\n\nNow, add all the legs toge",
+      "extracted": "220",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 13 lobsters, 10 starfishs, 11 praying mantiss, 11 spiders, 2 hor",
+      "ground_truth": "342",
+      "response": " starfishs, 11 praying mantiss, 11 spiders, 2 horses?\n\nassistant\nI'll solve this step by step:\n\n1) First, I need to know how many legs each animal has:\n- Lobsters: 10 legs each\n- Starfish: 5 legs each (standard number for starfish)\n- Praying mantises: 6 legs each\n- Spiders: 8 legs each\n- Horses: 4 legs each\n\n2) Now I'll calculate the total legs for each animal:\n- 13 lobsters \u00d7 10 legs = 130 legs\n- 10 starfish \u00d7 5 legs = 50 legs\n- 11 praying mantises \u00d7 6 legs = 66 legs\n- 11 spiders \u00d7 8 legs = 88 ",
+      "extracted": "342",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 14 chickens, 3 scorpions, 14 flatworms, 10 dogs, 11 praying mant",
+      "ground_truth": "242",
+      "response": "echs?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to know how many legs each type of animal has:\n\n- Chickens: 2 legs each\n- Scorpions: 8 legs each (scorpions have 8 legs)\n- Flatworms: 0 legs (flatworms are simple worms without legs)\n- Dogs: 4 legs each\n- Praying mantises: 6 legs each (insects have 6 legs)\n- Lions: 4 legs each\n- Ducks: 2 legs each\n- Leeches: 0 legs (leeches are flatworms without legs)\n\nNow I'll calculate the total legs for each animal type:\n\n1. Chickens: 14 \u00d7 2 = 28 l",
+      "extracted": "242",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 9 ducks, 1 cockroach, 8 elephants, 13 wasps, 1 sheep, 10 ants?\n",
+      "ground_truth": "198",
+      "response": "roach, 8 elephants, 13 wasps, 1 sheep, 10 ants?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to know how many legs each type of animal has:\n- Ducks: 2 legs each\n- Cockroaches: 6 legs each\n- Elephants: 4 legs each\n- Wasps: 6 legs each\n- Sheep: 4 legs each\n- Ants: 6 legs each\n\nNow I'll calculate the total legs for each animal type:\n\n1. Ducks: 9 ducks \u00d7 2 legs = 18 legs\n2. Cockroach: 1 cockroach \u00d7 6 legs = 6 legs\n3. Elephants: 8 elephants \u00d7 4 legs = 32 legs\n4. Wasps: 13 wasps \u00d7 6 legs = ",
+      "extracted": "198",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 2 cockroachs, 10 tigers, 13 deers, 2 lions, 9 lobsters, 1 bee, 1",
+      "ground_truth": "326",
+      "response": "I'll solve this step by step:\n\n1) First, I need to know how many legs each animal has:\n- Cockroach: 6 legs\n- Tiger: 4 legs\n- Deer: 4 legs\n- Lion: 4 legs\n- Lobster: 10 legs\n- Bee: 6 legs\n- Woodlouse: 6 legs\n- Grasshopper: 6 legs\n- Duck: 2 legs\n- Starfish: 5 legs (note: starfish typically have 5 arms, which are often considered legs)\n\n2) Now I'll calculate the total legs for each type:\n- 2 cockroaches: 2 \u00d7 6 = 12 legs\n- 10 tigers: 10 \u00d7 4 = 40 legs\n- 13 deers: 13 \u00d7 4 = 52 legs\n- 2 lions: 2 \u00d7 4 = 8 ",
+      "extracted": "318",
+      "correct": false
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 15 cockroachs, 6 spiders, 8 lobsters, 15 praying mantiss, 1 wasp",
+      "ground_truth": "386",
+      "response": "?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to recall how many legs each animal typically has:\n\n- Cockroaches: 6 legs\n- Spiders: 8 legs\n- Lobsters: 10 legs\n- Praying mantises: 6 legs\n- Wasps: 6 legs\n- Sea slugs: 0 legs (they are mollusks and don't have legs)\n- Birds: 2 legs\n- Crickets: 6 legs\n- Cows: 4 legs\n\nNow I'll calculate the total legs for each type:\n\n1. Cockroaches: 15 \u00d7 6 = 90 legs\n2. Spiders: 6 \u00d7 8 = 48 legs\n3. Lobsters: 8 \u00d7 10 = 80 legs\n4. Praying mantises: 15 \u00d7 6 = 90 le",
+      "extracted": "386",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 8 praying mantiss, 6 horses, 5 ducks, 9 jellyfishs, 7 beetles, 1",
+      "ground_truth": "179",
+      "response": "9 jellyfishs, 7 beetles, 11 starfishs?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to recall how many legs each animal typically has:\n\n- Praying mantises: 6 legs (insects)\n- Horses: 4 legs (mammals)\n- Ducks: 2 legs (birds)\n- Jellyfish: 0 legs (they're cnidarians, not animals with legs)\n- Beetles: 6 legs (insects)\n- Starfish: 5 arms (though not technically \"legs\", they're often counted as such in these puzzles)\n\nNow let me calculate each group:\n\n1. Praying mantises: 8 \u00d7 6 = 48 legs\n2.",
+      "extracted": "179",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 15 praying mantiss, 12 cockroachs, 7 sea slugs, 12 jellyfishs, 3",
+      "ground_truth": "240",
+      "response": "s, 3 wasps, 6 lobsters?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to recall how many legs each type of animal typically has:\n\n1. Praying mantis - typically 6 legs\n2. Cockroach - typically 6 legs\n3. Sea slug - typically 0 legs (they are mollusks without legs)\n4. Jellyfish - typically 0 legs (they are cnidarians without legs)\n5. Wasp - typically 6 legs\n6. Lobster - typically 10 legs\n\nNow, let me calculate the total legs for each animal:\n\n1. 15 praying mantises: 15 \u00d7 6 = 90 legs\n2. 12",
+      "extracted": "240",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 7 ants, 5 lions, 15 ducks, 12 chickens, 3 snakes, 15 grasshopper",
+      "ground_truth": "290",
+      "response": "echs, 14 insects?\n\nassistant\n<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_call>...<tool_cal",
+      "extracted": "assistant",
+      "correct": false
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 8 lions, 7 leechs, 8 bees, 3 elephants, 7 butterflys?\n",
+      "ground_truth": "134",
+      "response": " if you have 8 lions, 7 leechs, 8 bees, 3 elephants, 7 butterflys?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to determine how many legs each type of animal has:\n\n1. Lions - Lions are mammals and typically have 4 legs each\n2. Leeches - Leeches are annelids and typically have no legs (they have no appendages)\n3. Bees - Bees have 6 legs (3 pairs)\n4. Elephants - Elephants are mammals and typically have 4 legs each\n5. Butterflies - Butterflies have 6 legs (3 pairs)\n\nNow, let me calculat",
+      "extracted": "134",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 4 scorpions, 11 fireflys, 8 starfishs, 11 cats?\n",
+      "ground_truth": "182",
+      "response": " have 4 scorpions, 11 fireflys, 8 starfishs, 11 cats?\n\nassistant\nI'll solve this step by step:\n\n1) First, I need to know how many legs each animal has:\n- Scorpions have 8 legs each\n- Fireflies have 6 legs each\n- Starfish have 5 legs each\n- Cats have 4 legs each\n\n2) Calculate legs for each animal type:\n- 4 scorpions \u00d7 8 legs = 32 legs\n- 11 fireflies \u00d7 6 legs = 66 legs\n- 8 starfish \u00d7 5 legs = 40 legs\n- 11 cats \u00d7 4 legs = 44 legs\n\n3) Add them all together:\n32 + 66 = 98\n98 + 40 = 138\n138 + 44 = 182\n",
+      "extracted": "182",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 7 shrimps, 12 woodlouses, 15 chickens, 4 sheeps, 1 cat, 13 cows,",
+      "ground_truth": "356",
+      "response": ", 8 humans, 3 snakes?\n\nassistant\n<tool_call>...<tool_call>\nLet's go through each animal and count their legs:\n\n1. Shrimps: Shrimps have 10 legs each.  \n   7 shrimps \u00d7 10 = 70 legs\n\n2. Woodlouses: Woodlouses have 6 legs each.  \n   12 woodlouses \u00d7 6 = 72 legs\n\n3. Chickens: Chickens have 2 legs each.  \n   15 chickens \u00d7 2 = 30 legs\n\n4. Sheeps: Sheep have 4 legs each.  \n   4 sheeps \u00d7 4 = 16 legs\n\n5. Cat: A cat has 4 legs.  \n   1 cat \u00d7 4 = 4 legs\n\n6. Cows: Cows have 4 legs each.  \n   13 cows \u00d7 4 = 52 ",
+      "extracted": "260",
+      "correct": false
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 10 sheeps, 14 shrimps, 1 beetle, 13 crabs, 2 snakes, 15 cows?\n",
+      "ground_truth": "376",
+      "response": " beetle, 13 crabs, 2 snakes, 15 cows?\n\nassistant\n<tool_call> Start by determining the number of legs each animal has:\n- Sheep: 4 legs each\n- Shrimp: 10 legs each (shrimps have 10 legs)\n- Beetle: 6 legs (beetles have 6 legs)\n- Crab: 10 legs each (crabs have 10 legs)\n- Snake: 0 legs (snakes have no legs)\n- Cow: 4 legs each\n\nNow calculate the total legs:\n- 10 sheep \u00d7 4 = 40 legs\n- 14 shrimps \u00d7 10 = 140 legs\n- 1 beetle \u00d7 6 = 6 legs\n- 13 crabs \u00d7 10 = 130 legs\n- 2 snakes \u00d7 0 = 0 legs\n- 15 cows \u00d7 4 = 6",
+      "extracted": "376",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 6 crickets, 3 bees, 4 praying mantiss, 13 spiders, 7 cockroachs,",
+      "ground_truth": "374",
+      "response": "I'll solve this step by step.\n\nFirst, I need to identify how many legs each type of animal has:\n\n1. Crickets - insects, typically 6 legs\n2. Bees - insects, typically 6 legs  \n3. Praying mantises - insects, typically 6 legs\n4. Spiders - arachnids, typically 8 legs\n5. Cockroaches - insects, typically 6 legs\n6. Crabs - crustaceans, typically 10 legs\n7. Cats - mammals, typically 4 legs\n8. Insects - general category, but since we already have specific insects listed, I'll assume this is a mistake or ",
+      "extracted": "302",
+      "correct": false
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 11 praying mantiss, 12 lions, 3 chickens, 9 sea slugs, 12 giraff",
+      "ground_truth": "264",
+      "response": " spiders?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to know how many legs each type of animal has:\n\n- Praying mantises: typically have 6 legs\n- Lions: mammals, typically have 4 legs\n- Chickens: birds, typically have 2 legs\n- Sea slugs: mollusks, typically have no legs (they don't have legs)\n- Giraffes: mammals, typically have 4 legs\n- Spiders: arachnids, typically have 8 legs\n\nNow, let me calculate the total legs for each animal:\n\n1. Praying mantises: 11 \u00d7 6 = 66 legs\n2. Lions: 12 ",
+      "extracted": "264",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 3 tigers, 3 wasps, 9 elephants, 5 ants, 3 cows, 5 grasshoppers, ",
+      "ground_truth": "162",
+      "response": "<tool_call>...<tool_call>\nLet's go through each animal and count their legs:\n\n1. Tigers: Each tiger has 4 legs.  \n   3 tigers \u00d7 4 = 12 legs\n\n2. Wasps: Each wasp has 6 legs.  \n   3 wasps \u00d7 6 = 18 legs\n\n3. Elephants: Each elephant has 4 legs.  \n   9 elephants \u00d7 4 = 36 legs\n\n4. Ants: Each ant has 6 legs.  \n   5 ants \u00d7 6 = 30 legs\n\n5. Cows: Each cow has 4 legs.  \n   3 cows \u00d7 4 = 12 legs\n\n6. Grasshoppers: Each grasshopper has 6 legs.  \n   5 grasshoppers \u00d7 6 = 30 legs\n\n7. Flatworms: Flatworms have no ",
+      "extracted": "162",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 13 praying mantiss, 1 sea slug, 14 flatworms?\n",
+      "ground_truth": "78",
+      "response": "3 praying mantiss, 1 sea slug, 14 flatworms?\n\nassistant\nI need to count the total number of legs for the given animals.\n\nLet me analyze each animal type:\n\n1. Praying mantises - These are insects with 6 legs each.\n   - 13 praying mantises \u00d7 6 legs = 78 legs\n\n2. Sea slugs - These are mollusks and typically have no legs.\n   - 1 sea slug \u00d7 0 legs = 0 legs\n\n3. Flatworms - These are simple invertebrates and typically have no legs.\n   - 14 flatworms \u00d7 0 legs = 0 legs\n\nNow, let's add them up:\n78 (from m",
+      "extracted": "78",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 2 woodlouses, 11 dogs, 2 cats, 15 horses, 8 sea slugs, 2 spiders",
+      "ground_truth": "156",
+      "response": "ugs, 2 spiders?\n\nassistant\nI'll solve this step by step:\n\n1) First, I need to know how many legs each animal has:\n- Woodlouse: 6 legs (insects typically have 6 legs)\n- Dog: 4 legs\n- Cat: 4 legs\n- Horse: 4 legs\n- Sea slug: 0 legs (they are mollusks and don't have legs)\n- Spider: 8 legs\n\n2) Now I'll calculate the total legs for each animal type:\n- 2 woodlouses \u00d7 6 legs = 12 legs\n- 11 dogs \u00d7 4 legs = 44 legs\n- 2 cats \u00d7 4 legs = 8 legs\n- 15 horses \u00d7 4 legs = 60 legs\n- 8 sea slugs \u00d7 0 legs = 0 legs\n-",
+      "extracted": "140",
+      "correct": false
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 3 ants, 8 ducks, 15 leechs?\n",
+      "ground_truth": "34",
+      "response": " there in total if you have 3 ants, 8 ducks, 15 leechs?\n\nassistant\nI'll solve this step by step.\n\nFirst, I need to know how many legs each type of animal has:\n\n- Ants: Typically have 6 legs each\n- Ducks: Typically have 2 legs each  \n- Leeches: Typically have 0 legs (they are parasitic worms)\n\nNow, let me calculate the total legs for each animal:\n\n1. For 3 ants: 3 ants \u00d7 6 legs = 18 legs\n2. For 8 ducks: 8 ducks \u00d7 2 legs = 16 legs\n3. For 15 leeches: 15 leeches \u00d7 0 legs = 0 legs\n\nNow, let me add th",
+      "extracted": "34",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 14 crabs, 7 cockroachs, 3 giraffes, 10 scorpions?\n",
+      "ground_truth": "274",
+      "response": " giraffes, 10 scorpions?\n\nassistant\n<tool_call> Start by determining the number of legs each animal has:\n- Crabs have 10 legs each.\n- Cockroaches have 6 legs each.\n- Giraffes have 4 legs each.\n- Scorpions have 8 legs each.\n\nNow calculate the total legs for each animal:\n- 14 crabs: 14 \u00d7 10 = 140 legs\n- 7 cockroaches: 7 \u00d7 6 = 42 legs\n- 3 giraffes: 3 \u00d7 4 = 12 legs\n- 10 scorpions: 10 \u00d7 8 = 80 legs\n\nNow add them all together:\n140 + 42 = 182\n182 + 12 = 194\n194 + 80 = 274\n\nTotal legs = 274\n\n<answer>274",
+      "extracted": "274",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 11 giraffes, 13 wasps, 2 lobsters, 1 lion, 12 flatworms, 13 spid",
+      "ground_truth": "250",
+      "response": " spiders?\n\nassistant\nI'll solve this step by step:\n\n1) First, I need to know how many legs each animal has:\n- Giraffes: 4 legs each\n- Wasps: 6 legs each (insects)\n- Lobsters: 10 legs each (crustaceans)\n- Lions: 4 legs each\n- Flatworms: 0 legs (they're flatworms, no legs)\n- Spiders: 8 legs each\n\n2) Now I'll calculate the total legs for each animal:\n- 11 giraffes \u00d7 4 legs = 44 legs\n- 13 wasps \u00d7 6 legs = 78 legs\n- 2 lobsters \u00d7 10 legs = 20 legs\n- 1 lion \u00d7 4 legs = 4 legs\n- 12 flatworms \u00d7 0 legs = 0",
+      "extracted": "250",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 8 chickens, 4 deers, 14 flatworms, 2 ducks?\n",
+      "ground_truth": "36",
+      "response": " 4 deers, 14 flatworms, 2 ducks?\n\nassistant\nI'll solve this step by step:\n\n1) First, let's determine how many legs each type of animal has:\n- Chickens have 2 legs each\n- Deers have 4 legs each\n- Flatworms have 0 legs each (they're flatworms, not insects or mammals)\n- Ducks have 2 legs each\n\n2) Now let's calculate the total legs for each animal:\n- 8 chickens \u00d7 2 legs = 16 legs\n- 4 deers \u00d7 4 legs = 16 legs\n- 14 flatworms \u00d7 0 legs = 0 legs\n- 2 ducks \u00d7 2 legs = 4 legs\n\n3) Add up all the legs:\n16 (ch",
+      "extracted": "36",
+      "correct": true
+    },
+    {
+      "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 1 shrimp, 6 fireflys, 14 birds, 14 grasshoppers, 5 crickets, 6 c",
+      "ground_truth": "248",
+      "response": "I'll solve this step by step.\n\nFirst, I need to know how many legs each type of animal has:\n\n- Shrimp: typically 10 legs (crustaceans have 10 legs)\n- Fireflies: typically 6 legs (insects have 6 legs)\n- Birds: typically 2 legs (birds have 2 legs)\n- Grasshoppers: typically 6 legs (insects have 6 legs)\n- Crickets: typically 6 legs (insects have 6 legs)\n- Cockroaches: typically 6 legs (insects have 6 legs)\n- Tigers: typically 4 legs (mammals have 4 legs)\n\nNow I'll calculate the total legs for each a",
+      "extracted": "248",
+      "correct": true
+    }
+  ]
+}

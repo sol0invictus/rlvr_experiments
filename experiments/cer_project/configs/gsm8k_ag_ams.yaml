@@ -1,0 +1,54 @@
+model:
+  name_or_path: /code-fsx/sunguha/models/Qwen2.5-3B-Instruct
+  torch_dtype: bfloat16
+  attn_implementation: flash_attention_2
+
+data:
+  dataset_name: openai/gsm8k
+  subset: main
+  split: train
+  prompt_column: question
+  answer_column: answer
+
+environment:
+  name: gsm8k
+
+seed: 42
+
+system_prompt: |
+  A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>
+
+training:
+  output_dir: /scratch/sunguha/cer_project/gsm8k_ag_ams
+  learning_rate: 1.0e-6
+  loss_type: grpo
+  beta: 0.04
+  gradient_accumulation_steps: 2
+  per_device_train_batch_size: 2
+  num_train_epochs: 1
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  max_steps: 500
+  warmup_ratio: 0.05
+  max_grad_norm: 1.0
+  lr_scheduler_type: cosine
+  gradient_checkpointing: true
+  mask_truncated_completions: true
+  report_to:
+    - tensorboard
+
+generation:
+  max_completion_length: 512
+  temperature: 0.7
+  num_generations: 8
+  generation_batch_size: 16
+
+ag_ams:
+  sft_weight: 1.0
+  rl_weight: 1.0
+  alpha: 2.0
+  beta_scale: 0.5
+  format_bonus: 0.1
+  log_every_n_steps: 10

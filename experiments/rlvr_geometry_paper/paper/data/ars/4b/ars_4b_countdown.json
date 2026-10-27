@@ -1,0 +1,28 @@
+{
+  "model": "/code-fsx/sunguha/sft_qwen_4.0b_instruct",
+  "num_samples": 50,
+  "seed": 9999,
+  "per_atom": {
+    "L1_number_inventory": {
+      "accuracy": 0.88
+    },
+    "L1_target_reading": {
+      "accuracy": 0.96
+    },
+    "L1_how_many_numbers": {
+      "accuracy": 0.44
+    },
+    "L2_single_op": {
+      "accuracy": 1.0
+    },
+    "L2_two_number_reachability": {
+      "accuracy": 0.62
+    },
+    "L2_distance_to_target": {
+      "accuracy": 0.98
+    }
+  },
+  "L1_avg": 0.7599999999999999,
+  "L2_avg": 0.8666666666666667,
+  "ARS": 0.8133333333333332
+}

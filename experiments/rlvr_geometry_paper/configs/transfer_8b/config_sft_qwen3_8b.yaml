@@ -1,0 +1,18 @@
+model:
+  name_or_path: /scratch/sunguha/models/Qwen3-8B
+  torch_dtype: bfloat16
+sft:
+  output_dir: experiments/rlvr_geometry_paper/outputs/sft_qwen3_8b
+  output_file: data_gen/data/sft_warmup.jsonl
+sft_training:
+  batch_size: 2
+  bf16: true
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-05
+  logging_steps: 10
+  max_seq_length: 1024
+  num_train_epochs: 3
+  output_dir: experiments/rlvr_geometry_paper/outputs/sft_qwen3_8b
+  report_to: none
+  save_steps: 50
+  save_strategy: epoch

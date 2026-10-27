@@ -1,0 +1,17 @@
+model:
+  name_or_path: experiments/rlvr_geometry_paper/results/phase2_sp/idea_g2/cycle3_grpo
+  torch_dtype: bfloat16
+sft:
+  output_file: experiments/rlvr_geometry_paper/results/phase2_sp/idea_g2/sft_data_2025.jsonl
+training:
+  output_dir: experiments/rlvr_geometry_paper/results/phase2_sp/idea_g2/cycle3_sft
+  learning_rate: 1.0e-06
+  num_train_epochs: 1
+  batch_size: 2
+  gradient_accumulation_steps: 1
+  bf16: true
+  logging_steps: 10
+  save_strategy: epoch
+  save_steps: 9999
+  max_seq_length: 2048
+  report_to: []

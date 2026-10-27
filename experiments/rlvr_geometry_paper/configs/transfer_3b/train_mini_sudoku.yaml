@@ -1,0 +1,51 @@
+environment:
+  length_penalty: true
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: mini_sudoku
+  task_params: {}
+generation:
+  generation_batch_size: 8
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 20
+  log_dir: experiments/rlvr_geometry_paper/results/grpo_qwen25_3b_mini_sudoku/generations
+  print_n_examples: 10
+model:
+  name_or_path: /scratch/sunguha/rlvr_experiments/outputs/sft_qwen25_3b
+  torch_dtype: bfloat16
+seed: 42
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: 5.0
+  gradient_accumulation_steps: 1
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: true
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: experiments/rlvr_geometry_paper/results/grpo_qwen25_3b_mini_sudoku
+  per_device_train_batch_size: 1
+  report_to:
+  - tensorboard
+  save_steps: 25
+  save_strategy: steps
+  save_total_limit: 3
+  warmup_ratio: 0.1

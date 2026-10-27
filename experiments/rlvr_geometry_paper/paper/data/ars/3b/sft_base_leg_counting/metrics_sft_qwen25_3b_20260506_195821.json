@@ -1,0 +1,16 @@
+{
+  "model": "/code-fsx/sunguha/rlvr_experiments/outputs/sft_qwen25_3b",
+  "timestamp": "20260506_195821",
+  "eval_seed": 9999,
+  "num_samples": 200,
+  "tasks": {
+    "leg_counting": {
+      "task": "leg_counting",
+      "accuracy": 0.165,
+      "valid_format_rate": 1.0,
+      "avg_reasoning_length": 274.52,
+      "num_samples": 200,
+      "num_correct": 33
+    }
+  }
+}

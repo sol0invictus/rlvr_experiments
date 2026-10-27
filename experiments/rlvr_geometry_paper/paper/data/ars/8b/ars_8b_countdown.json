@@ -1,0 +1,28 @@
+{
+  "model": "/code-fsx/sunguha/rlvr_experiments/outputs/sft_qwen3_8b",
+  "num_samples": 50,
+  "seed": 9999,
+  "per_atom": {
+    "L1_number_inventory": {
+      "accuracy": 0.06
+    },
+    "L1_target_reading": {
+      "accuracy": 0.3
+    },
+    "L1_how_many_numbers": {
+      "accuracy": 0.36
+    },
+    "L2_single_op": {
+      "accuracy": 0.98
+    },
+    "L2_two_number_reachability": {
+      "accuracy": 0.58
+    },
+    "L2_distance_to_target": {
+      "accuracy": 1.0
+    }
+  },
+  "L1_avg": 0.24,
+  "L2_avg": 0.8533333333333334,
+  "ARS": 0.5466666666666666
+}

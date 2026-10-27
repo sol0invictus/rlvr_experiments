@@ -1,0 +1,38 @@
+# Quick eval: can the base model solve caesar cipher at all?
+model:
+  name_or_path: /scratch/sunguha/sft_qwen_4.0b_instruct
+  torch_dtype: bfloat16
+  attn_implementation: flash_attention_2
+  compile: false
+
+environment:
+  name: reasoning_gym
+  task_name: caesar_cipher
+  samples: 40
+  task_params:
+    min_words: 2
+    max_words: 4
+    min_rotation: 1
+    max_rotation: 3
+
+evaluation:
+  num_samples: 40
+  seed: 999
+
+generation:
+  max_new_tokens: 2048
+  temperature: 0.0
+  batch_size: 4
+
+system_prompt: |
+  You are a helpful assistant that decrypts Caesar ciphers. In a Caesar cipher, each letter is shifted by a fixed number of positions in the alphabet.
+
+  Example:
+  Cipher text: KHOOR ZRUOG
+  Step 1: Try shifting each letter back. With shift=3: K→H, H→E, O→L, O→L, R→O → "HELLO"
+  Step 2: Continue: Z→W, R→O, U→R, O→L, G→D → "WORLD"
+  Decrypted: HELLO WORLD
+
+  Put your thinking inside <think> and </think> tags, and your final decrypted text inside <answer> and </answer> tags.
+
+output_dir: experiments/rlvr_geometry_paper/outputs/evaluation/caesar_base_easy/

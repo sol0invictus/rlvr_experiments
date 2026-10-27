@@ -1,0 +1,11 @@
+/usr/local/lib/python3.10/dist-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Loading SFT: /code-fsx/sunguha/rlvr_experiments/outputs/sft_qwen25_7b
+  339 params
+  model has 28 layers
+  analyzing 12 representative layers
+
+=== countdown ===
+  model.layers.0.mlp.down_proj.weight
+  model.layers.0.self_attn.q_proj.weight
+  model.layers.2.mlp.down_proj.weight

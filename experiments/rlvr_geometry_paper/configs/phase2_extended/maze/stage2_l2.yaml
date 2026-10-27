@@ -1,0 +1,48 @@
+environment:
+  name: atomic
+  base_task: maze
+  atom_layer: L2
+  samples: 5000
+  task_params: {}
+generation:
+  generation_batch_size: 8
+  max_completion_length: 256
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+    - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 10
+  log_dir: experiments/rlvr_geometry_paper/results/phase2_ext/maze/stage2_l2/generations
+  print_n_examples: 5
+model:
+  name_or_path: experiments/rlvr_geometry_paper/results/phase2_ext/maze/stage1_l1
+  torch_dtype: bfloat16
+seed: 42
+system_prompt: >
+  You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: 5.0
+  gradient_accumulation_steps: 1
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: true
+  max_grad_norm: 1.0
+  max_steps: 100
+  num_train_epochs: 2
+  output_dir: experiments/rlvr_geometry_paper/results/phase2_ext/maze/stage2_l2
+  per_device_train_batch_size: 1
+  report_to: []
+  save_steps: 50
+  save_strategy: steps
+  save_total_limit: 2
+  warmup_ratio: 0.1

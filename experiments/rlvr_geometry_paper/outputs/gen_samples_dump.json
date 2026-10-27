@@ -1,0 +1,484 @@
+{
+  "baseline": {
+    "countdown": [
+      {
+        "question": "Calculate 199 using all of these numbers: 72, 56, 75, 31.\nEach number may be used at most once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression (no '=' sign).\n2.",
+        "ground_truth": "56*(75 - 72) + 31",
+        "response": "\nassistant\n<think>\nLet me try different combinations of operations with these numbers.\nTrying (75 - 31) = 44\nThen 44 * (72 - 56) = 44 * 16 = 704\nThat's too big. Let me try another approach.\nWhat if I do 75 + 72 = 147\nThen 147 + 56 = 203\nThat's over. Maybe 75 + 56 = 131\nThen 131 + 72 = 203 again\nHmm. What if I try (75 - 56) = 19\nThen 19 * (72 - 31) = 19 * 41 = 779\nStill too big. Let me think differently.\nWhat if I do 72 + 56 = 128\nThen 128 + 75 = 203\nStill over. Maybe I need to divide somewhere.\n",
+        "extracted": "Then 59 +",
+        "correct": false
+      },
+      {
+        "question": "Using all the numbers 79, 82, 91, 9, 65, create an expression that equals 126.\nYou can only use each number once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression",
+        "ground_truth": "82 - 91 - 9 + 79 + 65",
+        "response": "<think>\nLet me try different combinations of these numbers to reach 126.\nAfter testing various operations, I find that (91 - 65) + (82 - 79) + 9 = 126.\n</think>\n\n<answer>(91 - 65) + (82 - 79) + 9</answer>",
+        "extracted": "(91 - 65) + (82 - 79) + 9",
+        "correct": false
+      },
+      {
+        "question": "Calculate 53 using all of these numbers: 8, 78, 70, 53.\nEach number may be used at most once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression (no '=' sign).\n2. D",
+        "ground_truth": "8 - 78 + 70 + 53",
+        "response": " formatting.\n\nassistant\n<think>\nLet me think... I need to use 8, 78, 70, and 53 to make 53. Since 53 is already in the list, I can't use it. Wait, the instructions say to use all numbers but not include the target number. So I need to make 53 using 8, 78, 70, and 53. But that's impossible because 53 is already in the list. Maybe I misunderstood the instructions. Let me re-read them.\n\nOh! The target number is 53, and I need to use all the given numbers (8, 78, 70, 53) to make 53. But since 53 is ",
+        "extracted": "78 - 70 - (8 * 0)",
+        "correct": false
+      }
+    ],
+    "maze": [
+      {
+        "question": "Navigate from '9' (start) to 'g' (goal):\n\n```\nffffffff\nfkfkkkff\nfkkkkkkf\nff9fkfff\nfkfkkkkf\nfkkgfkkf\nffkkkfkf\nffffffff\n```\nLegend: 'f' = Wall, 'k' = Passage\n\nWhat is the minimum number of steps to reac",
+        "ground_truth": "7",
+        "response": " only the number of steps as your final answer, no other text or formatting.\nassistant\n<think>\nLet me visualize the maze and find the shortest path from '9' to 'g'.\n</think>\n\n</think>\n\nTo solve this, I'll perform a breadth-first search (BFS) from the starting position '9' to the goal 'g', counting the minimum number of steps required.",
+        "extracted": "To solve this, I'll perform a breadth-first search (BFS) from the starting position '9' to the goal 'g', counting the minimum number of steps required.",
+        "correct": false
+      },
+      {
+        "question": "Navigate from 'i' (start) to '(' (goal):\n\n```\nwwwwwwwwww\nwwAwAwwAAw\nwAAAAAAA(w\nwAAAAAAAww\nwAAAwwAAAw\nwAAAAAwwAw\nwAwAwAAwAw\nwAAAwAiAAw\nwwAAwAAwAw\nwwwwwwwwww\n```\nLegend: 'w' = Wall, 'A' = Passage\n\nWhat ",
+        "ground_truth": "9",
+        "response": "<think>\nLet me visualize this maze and find the shortest path from 'i' to '('.\n</think>\n\n</think>\n\nLet me visualize this maze and find the shortest path from 'i' to '('.\n</think>\n\nLet me visualize this maze and find the shortest path from 'i' to '('.\n</think>\n\nLet me visualize this maze and find the shortest path from 'i' to '('.\n</think>\n\nLet me visualize this maze and find the shortest path from 'i' to '('.\n",
+        "extracted": "Let me visualize this maze and find the shortest path from 'i' to '('.",
+        "correct": false
+      },
+      {
+        "question": "Navigate from '%' (start) to '*' (goal):\n\n```\nggggggggg\nggssssggg\ng*ssssssg\ngggsgsggg\ngssssgsgg\ng%sssggsg\nggsgssssg\ngssgsssgg\nggggggggg\n```\nLegend: 'g' = Wall, 's' = Passage\n\nWhat is the minimum numbe",
+        "ground_truth": "7",
+        "response": ".\nassistant\n<think>\nLet me visualize the maze first:\nRow 0: ggggggggg\nRow 1: ggssssggg\nRow 2: g*ssssssg\nRow 3: gggsgsggg\nRow 4: gssssgsgg\nRow 5: g%sssggsg\nRow 6: ggsgssssg\nRow 7: gssgsssgg\nRow 8: ggggggggg\n\nStart position is at (5,1) (row 5, column 1)\nGoal is at (2,1) (row 2, column 1)\n\nLet me perform BFS from start position:\nStep 0: (5,1)\nStep 1: (5,2)\nStep 2: (5,3)\nStep 3: (5,4)\nStep 4: (4,4)\nStep 5: (3,4)\nStep 6: (3,5)\nStep 7: (2,5)\nStep 8: (2,4)\nStep 9: (2,3)\nStep 10: (2,2)\nStep 11: (2,1)\n\nM",
+        "extracted": "11",
+        "correct": false
+      }
+    ],
+    "mini_sudoku": [
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "2 3 4 1\n4 1 2 3\n1 2 3 4\n3 4 1 2",
+        "response": "assistant\n<think>\nLet me solve this step by step.\nStarting with the given puzzle:\nRow 1: 2 _ _ 1\nRow 2: _ _ _ _\nRow 3: 1 2 3 _\nRow 4: _ 4 _ 2\nLooking at row 1, we have 2 and 1 already. Missing numbers are 3 and 4.\nLooking at row 3, we have 1, 2, 3 already. Missing number is 4.\nLooking at row 4, we have 4 and 2 already. Missing numbers are 1 and 3.\nLooking at column 1, we have 2 and 1 already. Missing numbers are 3 and 4.\nLooking at column 2, we have 4 already. Missing numbers are 1, 2, 3.\nLookin",
+        "extracted": "Row 4: _ 4 _ 2",
+        "correct": false
+      },
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "4 1 2 3\n2 3 1 4\n3 2 4 1\n1 4 3 2",
+        "response": "\n<think>\nLet me solve this step by step.\nRow 1: 4 1 2 _ \u2192 Missing number is 3 (since 1,2,4 are present)\nSo row 1 becomes: 4 1 2 3\nRow 2: _ 3 _ 4 \u2192 Missing numbers are 1 and 2\nColumn 1 has 4, so row 2 column 1 can't be 4\nRow 2 column 1 must be 1 or 2\nLet me check subgrid for row 2 column 1 (top-left 2x2 subgrid)\nIt contains 4,1,3,2 (from row 1 and row 2)\nSo row 2 column 1 can't be 1 or 2 \u2192 contradiction\nWait, this suggests I made a mistake earlier\nLet me re-evaluate\nRow 1: 4 1 2 _ \u2192 Missing numbe",
+        "extracted": "Let me check subgrid for row",
+        "correct": false
+      },
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "3 4 2 1\n2 1 4 3\n1 2 3 4\n4 3 1 2",
+        "response": "assistant\n<think>\nLet me solve this step by step.\nStarting with the given puzzle:\n_ 4 2 _\n2 1 4 3\n_ _ _ _\n4 3 _ _\n\nLooking at row 1, we have 4 and 2 already. Missing numbers are 1 and 3.\nLooking at column 1, we have 2 and 4 already. Missing numbers are 1 and 3.\nLooking at the top-left 2x2 subgrid, we have 4 and 2 already. Missing numbers are 1 and 3.\nSo row 1, column 1 must be 1 (since it's the only number that fits all constraints).\nThat leaves row 1, column 4 to be 3.\nNow the puzzle looks like",
+        "extracted": "4 3 1 2",
+        "correct": false
+      }
+    ],
+    "shortest_path": [
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "up up left left left left left",
+        "response": " O O O\nO O O X X O\nO O X O O *\n\nassistant\n<think>\nLet me visualize the grid first:\nRow 0: O X X O O O\nRow 1: O O X O X O\nRow 2: # O O O O O\nRow 3: O O O X X O\nRow 4: O O X O O *\n\nStarting point is at (4,5) (row 4, column 5)\nDestination is at (2,0) (row 2, column 0)\n\nLet me perform BFS from the start position to find the shortest path.\nI'll track the path by keeping a parent matrix.\n\nAfter BFS, I found the shortest path:\nLeft Left Up Up Left Left Left Left Left Left Left Left Left Left Left Left ",
+        "extracted": "Left Left Up Up Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left Left",
+        "correct": false
+      },
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "infeasible",
+        "response": "<think>\nLet me visualize the grid first. I need to find the shortest path from * to #, moving only through open cells (O), avoiding blocked cells (X). I'll use BFS to find the shortest path.\n</think>\n\n</think>\n\nLet me visualize the grid first. I need to find the shortest path from * to #, moving only through open cells (O), avoiding blocked cells (X). I'll use BFS to find the shortest path.\n</think>\n\nLet me visualize the grid first. I need to find the shortest path from * to #, moving only throu",
+        "extracted": "Let me visualize the grid first. I need to find the shortest path from * to #, moving only through open cells (O), avoiding blocked cells (X). I'll use BFS to find the shortest path.",
+        "correct": false
+      },
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "left down left",
+        "response": " O\nO X O X X O\n\nassistant\n<think>\nLet me visualize the grid first. I need to find the shortest path from * to #, moving only through open cells (O), avoiding blocked cells (X). Let me mark the positions of * and # first.\n</think>\n\n</think>\n\nLet me visualize the grid first. I need to find the shortest path from * to #, moving only through open cells (O), avoiding blocked cells (X). Let me mark the positions of * and # first.\n</think>\n\nLet me visualize the grid first. I need to find the shortest p",
+        "extracted": "Let me visualize the grid first. I need to find the shortest path from * to #, moving",
+        "correct": false
+      }
+    ],
+    "basic_arithmetic": [
+      {
+        "question": "Calculate -66 - -51.",
+        "ground_truth": "-15",
+        "response": "Calculate -66 - -51.\nassistant\n<think>\nSubtracting a negative is like adding the positive.\nSo, -66 - (-51) becomes -66 + 51.\nAdding these gives -15.\n</think>\n\n<answer>-15</answer>",
+        "extracted": "-15",
+        "correct": true
+      },
+      {
+        "question": "Calculate ( -630 + 101 ) - 331 + -751.",
+        "ground_truth": "-1611",
+        "response": "<think>\nLet me solve this step by step.\nFirst, I'll calculate -630 + 101 = -529.\nThen, I'll add -331 to get -529 + (-331) = -860.\nFinally, I'll add -751 to get -860 + (-751) = -1611.\n</think>\n\n<answer>-1611</answer>",
+        "extracted": "-1611",
+        "correct": true
+      },
+      {
+        "question": "Calculate -( 52 + -20 + -66 ).",
+        "ground_truth": "34",
+        "response": " -66 ).\nassistant\n<think>\nLet me solve this step by step.\nFirst, I add 52 and -20: 52 + (-20) = 32\nThen I add -66 to that result: 32 + (-66) = -34\nNow I apply the negative sign in front: -(-34) = 34\n</think>\n\n<answer>34</answer>",
+        "extracted": "34",
+        "correct": true
+      }
+    ],
+    "syllogism": [
+      {
+        "question": "Consider these statements:\n1. No students are scientists\n2. Some scientists are parents\n\nDoes it logically follow that:\nSome parents are scientists?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "assistant\n<think>\nLet me recall the rules of syllogism. Statement 1 says all students are non-scientists. Statement 2 says some scientists are parents. The conclusion is some parents are scientists. This is valid because if some scientists are parents, then those parents must be scientists. So the conclusion follows.\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      },
+      {
+        "question": "Consider these statements:\n1. All lawyers are animals\n2. All animals are doctors\n\nDoes it logically follow that:\nAll lawyers are doctors?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "assistant\n<think>\nLet me visualize this with a Venn diagram.\nLawyers are inside animals, and animals are inside doctors.\nSo lawyers must be inside doctors.\nYes\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      },
+      {
+        "question": "Consider these statements:\n1. All teachers are programmers\n2. No programmers are tigers\n\nDoes it logically follow that:\nSome teachers are not tigers?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "<think>\nLet me analyze this using syllogistic logic.\nStatement 1: All teachers are programmers (A-type proposition)\nStatement 2: No programmers are tigers (E-type proposition)\nThe middle term \"programmers\" is distributed in both premises.\nThe conclusion \"Some teachers are not tigers\" is an O-type proposition.\nThis syllogism is valid (Figure 1, Mode AEE).\nYes\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      }
+    ],
+    "knights_knaves": [
+      {
+        "question": "A very special island is inhabited only by heros and villains. Heros always tell the truth, and villains always lie. You meet 2 inhabitants: Sebastian, and Harper. \"Harper is a hero and Sebastian is a",
+        "ground_truth": "Sebastian is a villain, and Harper is a hero.",
+        "response": "assistant\n<think>\nLet me analyze this step by step.\nAssume Sebastian is a hero (truth-teller). Then his statement \"Harper is a hero and Sebastian is a hero\" would be true. That means Harper is a hero. But Harper says \"Sebastian is a villain,\" which would be a lie if Harper is a hero. Contradiction.\nSo Sebastian must be a villain (liar). His statement \"Harper is a hero and Sebastian is a hero\" is false. Since Sebastian is a villain, the second part is false. For the whole statement to be false, a",
+        "extracted": "Sebastian is a villain, and Harper is a hero.",
+        "correct": true
+      },
+      {
+        "question": "A very special island is inhabited only by angels and devils. Angels always tell the truth, and devils always lie. You meet 2 inhabitants: Emily, and Oliver. Emily expressed that Oliver is a devil or ",
+        "ground_truth": "Emily is an angel, and Oliver is an angel.",
+        "response": "\")\nassistant\n<think>\nLet me analyze this step by step.\nLet me consider all possibilities:\nCase 1: Emily is an angel (truth-teller). Then her statement \"Oliver is a devil or Oliver is an angel\" must be true. This is always true, so Oliver could be either. Now, Oliver says \"Emily is an angel\". If Oliver were an angel, this would be true, which matches our assumption. If Oliver were a devil, this would be a lie, meaning Emily is a devil, which contradicts our assumption. So Oliver must be an angel.",
+        "extracted": "Emily is a angel, and Oliver is a angel",
+        "correct": false
+      },
+      {
+        "question": "A very special island is inhabited only by sages and fools. Sages always tell the truth, and fools always lie. You meet 2 inhabitants: Henry, and David. Henry said, \"David is a sage.\" David was heard ",
+        "ground_truth": "Henry is a sage, and David is a sage.",
+        "response": "\n<think>\nLet me analyze this step by step.\nAssume Henry is a sage (truth-teller). Then David must be a sage too (as Henry says). But David's statement would then be true: \"If Henry is a sage then David is a sage\" (which is true because both are sages). This scenario works.\nAssume Henry is a fool (liar). Then David must be a fool too (since Henry's statement is false). But David's statement would then be false: \"If Henry is a sage then David is a sage\" (which would be false only if Henry is a sag",
+        "extracted": "Henry is a sage, and David is a sage",
+        "correct": true
+      }
+    ],
+    "leg_counting": [
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 cats, 4 leechs, 11 ducks, 13 horses?\n",
+        "ground_truth": "94",
+        "response": "1 ducks, 13 horses?\n\nassistant\n<think>\nLet me calculate the total number of legs for each animal type:\nCats: 5 \u00d7 4 = 20 legs\nLeeches: 4 \u00d7 0 = 0 legs\nDucks: 11 \u00d7 2 = 22 legs\nHorses: 13 \u00d7 4 = 52 legs\nTotal legs = 20 + 0 + 22 + 52 = 94 legs\n</think>\n\n<answer>94</answer>",
+        "extracted": "94",
+        "correct": true
+      },
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 sheeps, 8 dogs, 15 lobsters, 3 cats, 4 ants, 9 bees, 4 cockroa",
+        "ground_truth": "316",
+        "response": "<think>\nLet me calculate each animal's legs:\nSheep: 5 \u00d7 4 = 20\nDog: 8 \u00d7 4 = 32\nLobster: 15 \u00d7 10 = 150\nCat: 3 \u00d7 4 = 12\nAnt: 4 \u00d7 6 = 24\nBee: 9 \u00d7 6 = 54\nCockroach: 4 \u00d7 6 = 24\nTotal legs: 20 + 32 + 150 + 12 + 24 + 54 + 24 = 316\n</think>\n\n<answer>316</answer>",
+        "extracted": "316",
+        "correct": true
+      },
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 elephants, 3 crabs, 10 shrimps, 4 lobsters, 5 wasps?\n",
+        "ground_truth": "220",
+        "response": "ps?\n\nassistant\n<think>\nElephant: 4 legs each\nCrab: 10 legs each\nShrimp: 10 legs each\nLobster: 10 legs each\nWasp: 6 legs each\nCalculating total legs: (5 \u00d7 4) + (3 \u00d7 10) + (10 \u00d7 10) + (4 \u00d7 10) + (5 \u00d7 6) = 20 + 30 + 100 + 40 + 30 = 220 legs\n</think>\n\n<answer>220</answer>",
+        "extracted": "220",
+        "correct": true
+      }
+    ],
+    "caesar_cipher": [
+      {
+        "question": "Decrypt this Caesar cipher text: CNKT GT OTIOJKTZ OY JKYIXOHKJ ZNGZ OY GRXKGJE VNUZUMXGVNY UL OZY SGOT LKGZAXKY GXK ZXGTYSOZZKJ COZN ZNK TGXXGZOBK. Provide only the decrypted text as your final answer",
+        "ground_truth": "WHEN AN INCIDENT IS DESCRIBED THAT IS ALREADY PHOTOGRAPHS OF ITS MAIN FEATURES ARE TRANSMITTED WITH THE NARRATIVE",
+        "response": "assistant\n<think>\nLet me try different shift values to decrypt this Caesar cipher.\nTrying shift value 10...\nThe decrypted text is: \"THEY ARE NOT REALISTICALLY ACCURATELY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTI",
+        "extracted": "The decrypted text is: \"THEY ARE NOT REALISTICALLY ACCURATELY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT THEY ARE NOT REALISTICALLY REPRESENTED IN THE WORLD BUT",
+        "correct": false
+      },
+      {
+        "question": "Decrypt this Caesar cipher text: ENQ HMRSDZC NE SGD DMCKDRR RTHSDR NE ZOZQSLDMSR NE SGD NKCDM NMD QNNL EHSSDC VHSG HMFDMHNTR LDBGZMHBZK BNMSQHUZMBDR HR DMNTFG. Provide only the decrypted text as your ",
+        "ground_truth": "FOR INSTEAD OF THE ENDLESS SUITES OF APARTMENTS OF THE OLDEN ONE ROOM FITTED WITH INGENIOUS MECHANICAL CONTRIVANCES IS ENOUGH",
+        "response": "<think>\nLet me analyze this Caesar cipher. A Caesar cipher shifts letters by a fixed number of positions in the alphabet. I'll try different shift values to find the plaintext.\nTrying shift=10 (since the ciphertext has many 'N's which might correspond to 'T' in plaintext):\nThe decrypted text is: \"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\"\n</think>\n\nTHE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
+        "extracted": "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
+        "correct": false
+      },
+      {
+        "question": "Decrypt this Caesar cipher text: BPMG UIG IB XTMIACZM OQDM IBBMVBQWV BW WVM MLQBWZ IVL ZMNCAM QB BW IVWBPMZ. Provide only the decrypted text as your final answer.",
+        "ground_truth": "THEY MAY AT PLEASURE GIVE ATTENTION TO ONE EDITOR AND REFUSE IT TO ANOTHER",
+        "response": " ZMNCAM QB BW IVWBPMZ. Provide only the decrypted text as your final answer.\nassistant\n<think>\nLet me analyze this Caesar cipher. I'll try shifting letters by different amounts to find the plaintext.\nTrying shift of 10...\n</think>\n\n<answer>THE QUICK BROWN FOX JUMPS OVER LAZY DOG</answer>",
+        "extracted": "THE QUICK BROWN FOX JUMPS OVER LAZY DOG",
+        "correct": false
+      }
+    ],
+    "cryptarithm": [
+      {
+        "question": "Solve this cryptarithm:\n\n   NIX\n+  FWF\n------\n  YYXI\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits that satisfie",
+        "ground_truth": "F=9,I=3,N=2,W=0,X=4,Y=1",
+        "response": "\nassistant\n<think>\nLet me try to solve this cryptarithm step by step.\nFirst, I'll write down the equation vertically to see the column-wise additions:\n   N I X\n+  F W F\n--------\n  Y Y X I\n\nLooking at the rightmost column (units place), we have X + F = I (possibly with a carryover).\nLooking at the next column (tens place), we have I + W + carryover = X.\nLooking at the next column (hundreds place), we have N + F + carryover = Y.\nLooking at the leftmost column (thousands place), we have carryover f",
+        "extracted": "A=9,B=8,C=7,D=6,E=5,F=1",
+        "correct": false
+      },
+      {
+        "question": "Solve this cryptarithm:\n\n   GXRX\n    VVN\n+ ERENN\n-------\n  EVXYN\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits t",
+        "ground_truth": "E=6,G=3,N=2,R=0,V=4,X=8,Y=7",
+        "response": "<think>\nLet me try to solve this cryptarithm step by step.\nFirst, I'll write down the equation vertically to see the column-wise additions:\n\n   G X R X\n     V V N\n+  E R E N N\n------------\n  E V X Y N\n\nLet me analyze each column from right to left (units to thousands place):\n\nColumn 1 (units place):\nX + N + N = N (with possible carryover)\nThis implies X + 2N = N or X + 2N = N + 10 (if there's a carryover)\nSimplifying: X + N = 0 or X + N = 10\nSince digits are 0-9, X + N = 10 is more likely (as X+",
+        "extracted": "Let me try V=1 and E=8 \u2192 Y=1+",
+        "correct": false
+      },
+      {
+        "question": "Solve this cryptarithm:\n\n    ZCR\n+ VJZRC\n-------\n  VKOOI\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits that sati",
+        "ground_truth": "C=7,I=2,J=0,K=1,O=3,R=5,V=8,Z=6",
+        "response": "assistant\n<think>\nLet me try to solve this cryptarithm step by step.\n\nFirst, let me write down the equation again for clarity:\n\n    ZCR\n+ VJZRC\n-------\n  VKOOI\n\nLet me analyze the columns from right to left, considering possible carries.\n\nColumn 1 (rightmost): R + C = I (possibly with carry)\nColumn 2: C + R + carry = O\nColumn 3: R + Z + carry = O\nColumn 4: Z + J + carry = K\nColumn 5: V + carry = V (since there's no more digits to add)\n\nWait, looking at column 5: V + carry = V. This implies that ",
+        "extracted": "Now, let me note that all letters are unique digits, and Z = C + 1, so C cannot be 9 (since Z would be 10, which is invalid). Also, Z cannot be 0 (since Z is a leading digit), so C + 1 \u2260 0 \u2192 C \u2260 -1 (",
+        "correct": false
+      }
+    ]
+  },
+  "grpo_qwen3_8b_countdown": {
+    "countdown": [
+      {
+        "question": "Calculate 199 using all of these numbers: 72, 56, 75, 31.\nEach number may be used at most once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression (no '=' sign).\n2.",
+        "ground_truth": "56*(75 - 72) + 31",
+        "response": "\nassistant\n<think>\nI need to combine 72, 56, 75, 31 into 199.\nTry operations: 75 + 72 = 147, 56 + 31 = 87; 147 + 87 = 234\nTry: 75 + 72 = 147, 56 - 31 = 25; 147 + 25 = 172\nTry: 72 + 56 = 128, 75 + 31 = 106; 128 + 106 = 234\nTry: 75 + 56 = 131, 72 + 31 = 103; 131 + 103 = 234\nTry: 72 + 75 = 147, 56 + 31 = 87; 147 + 87 = 234\nTry: 75 + 56 = 131, 72 - 31 = 41; 131 + 41 = 172\nTry: 72 * 3 = 216, but no 3\nTry: 75 + 72 = 147, 56 - 31 = 25; 147 + 25 = 172\nTry: 75 + 56 = 131, 72 + 31 = 103; 131 + 103 = 234\nT",
+        "extracted": "Try: 75 + 56 = 131, 72 + 31 = 103; 1",
+        "correct": false
+      },
+      {
+        "question": "Using all the numbers 79, 82, 91, 9, 65, create an expression that equals 126.\nYou can only use each number once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression",
+        "ground_truth": "82 - 91 - 9 + 79 + 65",
+        "response": "<think>\nI need to combine 79, 82, 91, 9, 65 into 126.\nTry operations: 91 + 82 = 173, 173 - 79 = 94, 94 + 9 = 103, 103 + 65 = 168\nTry: 91 + 65 = 156, 156 - 82 = 74, 74 + 79 = 153, 153 - 9 = 144\nTry: 82 + 91 = 173, 173 - 65 = 108, 108 + 79 = 187, 187 - 9 = 178\nTry: 79 + 82 = 161, 161 - 91 = 70, 70 + 65 = 135, 135 + 9 = 144\nTry: 91 - 9 = 82, 82 + 79 = 161, 161 - 65 = 96, 96 + 82 = 178\nTry: 91 + 9 = 100, 100 + 65 = 165, 165 - 82 = 83, 83 + 79 = 162\nTry: 82 + 65 = 147, 147 - 91 = 56, 56 + 79 = 135, 1",
+        "extracted": "82 + 65 - 91 + 79 - 9",
+        "correct": true
+      },
+      {
+        "question": "Calculate 53 using all of these numbers: 8, 78, 70, 53.\nEach number may be used at most once.\n\nFinal answer format instructions:\n1. Provide your solution as a arithmetic expression (no '=' sign).\n2. D",
+        "ground_truth": "8 - 78 + 70 + 53",
+        "response": " formatting.\n\nassistant\n<think>\nI need to reach 53 using 8, 78, 70, 53.\nI notice 53 is already in the list, but I can't use it.\nI can try: 78 - 70 = 8, then 8 + 53 = 61 (too high)\nAnother way: 70 - (78 - 53) = 70 - 25 = 45 (too low)\nWhat if: 78 - 8 = 70, then 70 - 53 = 17 (no)\nWait, maybe: 70 + 8 = 78, then 78 - 53 = 25 (no)\nTry: 78 - 70 = 8, then 8 + 53 = 61 (no)\nWait, maybe: 53 + (78 - 70) - 8 = 53 + 8 - 8 = 53\n</think>\n\n<answer>53 + (78 - 70) - 8</answer>",
+        "extracted": "53 + (78 - 70) - 8",
+        "correct": true
+      }
+    ]
+  },
+  "grpo_qwen3_8b_maze": {
+    "maze": [
+      {
+        "question": "Navigate from '9' (start) to 'g' (goal):\n\n```\nffffffff\nfkfkkkff\nfkkkkkkf\nff9fkfff\nfkfkkkkf\nfkkgfkkf\nffkkkfkf\nffffffff\n```\nLegend: 'f' = Wall, 'k' = Passage\n\nWhat is the minimum number of steps to reac",
+        "ground_truth": "7",
+        "response": " only the number of steps as your final answer, no other text or formatting.\nassistant\n<think>\nLet me try to find the shortest path from '9' to 'g'.\nFirst, I need to locate the start ('9') and the goal ('g') in the grid.\nLooking at the grid, I see that the '9' is located at position (4, 3) if we count rows from top to bottom (starting at 0) and columns from left to right (starting at 0).\nThe 'g' is located at position (6, 4).\nNow I need to find the shortest path from (4,3) to (6,4), moving only ",
+        "extracted": "Let me try",
+        "correct": false
+      },
+      {
+        "question": "Navigate from 'i' (start) to '(' (goal):\n\n```\nwwwwwwwwww\nwwAwAwwAAw\nwAAAAAAA(w\nwAAAAAAAww\nwAAAwwAAAw\nwAAAAAwwAw\nwAwAwAAwAw\nwAAAwAiAAw\nwwAAwAAwAw\nwwwwwwwwww\n```\nLegend: 'w' = Wall, 'A' = Passage\n\nWhat ",
+        "ground_truth": "9",
+        "response": "<think>\nLet me try to find the shortest path from 'i' to '(' in this maze.\n</think>\n\nTo solve this, I'll trace the shortest path from 'i' to '(' in the maze.\n</think>\n\nLet me analyze this maze step by step to find the shortest path from 'i' to '('.\n</think>\n\nLet me analyze this maze step by step to find the shortest path from 'i' to '('.\n</think>\n\nLet me analyze this maze step by step to find the shortest path from 'i' to '('.\n</think>\n\nLet me analyze this maze step by step to find the shortest ",
+        "extracted": "Let me analyze this maze step bysystem to find the shortest path from 'i' to '(').",
+        "correct": false
+      },
+      {
+        "question": "Navigate from '%' (start) to '*' (goal):\n\n```\nggggggggg\nggssssggg\ng*ssssssg\ngggsgsggg\ngssssgsgg\ng%sssggsg\nggsgssssg\ngssgsssgg\nggggggggg\n```\nLegend: 'g' = Wall, 's' = Passage\n\nWhat is the minimum numbe",
+        "ground_truth": "7",
+        "response": ".\nassistant\n<think>\nLet me try to find the shortest path from '%' to '*' in this maze.\n</think>\n\nTo solve this, I'll use a breadth-first search (BFS) algorithm to find the shortest path from '%' to '*' in the maze.\n\nAfter performing BFS on the maze, I find that the shortest path from '%' to '*' requires 26 steps.\n\n<answer>26</answer>",
+        "extracted": "26",
+        "correct": false
+      }
+    ]
+  },
+  "grpo_qwen3_8b_mini_sudoku": {
+    "mini_sudoku": [
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "2 3 4 1\n4 1 2 3\n1 2 3 4\n3 4 1 2",
+        "response": "assistant\n<think>\nLet me solve this step-by-step:\nFirst, I'll write down the given puzzle:\n\nRow 1: 2 _ _ 1\nRow 2: _ _ _ _\nRow 3: 1 2 3 _\nRow 4: _ 4 _ 2\n\nLooking at Row 3: 1 2 3 _ \u2192 Missing number is 4, so Row3 ends with 4\nRow3: 1 2 3 4\n\nLooking at Row4: _ 4 _ 2 \u2192 Missing numbers are 1 and 3. Let's check column 1:\nColumn1 has 2 (Row1), _ (Row2), 1 (Row3), _ (Row4) \u2192 Missing 3 and 4. So Row4, Col1 can't be 3 (since Row4 needs 1 or 3). So Row4, Col1 must be 4? Wait, no. Let me recheck.\n\nWait, Row4 ",
+        "extracted": "2 3 4 1  \n4 1 2 3  \n1 2 3 4  \n3 4 1 2",
+        "correct": true
+      },
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "4 1 2 3\n2 3 1 4\n3 2 4 1\n1 4 3 2",
+        "response": "\n<think>\nLet me solve this step-by-step:\nFirst, I'll write down the given puzzle:\n\nRow 1: 4 1 2 _\nRow 2: _ 3 _ 4\nRow 3: _ _ 4 1\nRow 4: _ 4 _ _\n\nLet me start with Row 1. It already has 4,1,2. Missing is 3. So Row 1: 4 1 2 3\n\nNow looking at Row 2: _ 3 _ 4. Missing numbers are 1 and 2. Let's check column 1. Row 1 has 4, Row 2 is ?, Row 3 is ?, Row 4 is ?. So column 1 can have 1,2,3. But Row 2's column 1 can't be 3 (already in row 2). So possible 1 or 2. Let me check subgrid. Row 2 is in top-left su",
+        "extracted": "4 1 2 3  \n2 3 1 4  \n3 2 4 1  \n1 4 3 2",
+        "correct": true
+      },
+      {
+        "question": "In 4x4 Mini Sudoku:\n- Each row must contain each number from 1-4 exactly once\n- Each column must contain each number 1-4 exactly once\n- Each 2x2 subgrid must contain each number 1-4 exactly once\nSolve",
+        "ground_truth": "3 4 2 1\n2 1 4 3\n1 2 3 4\n4 3 1 2",
+        "response": "assistant\n<think>\nLet me solve this step-by-step:\nFirst, I'll write down the given puzzle:\n\nRow 1: _ 4 2 _\nRow 2: 2 1 4 3\nRow 3: _ _ _ _\nRow 4: 4 3 _ _\n\nLooking at Row 1: Missing numbers are 1 and 3. Let's check column 1:\nColumn 1 has 2 (Row2), 4 (Row4) \u2192 missing 1 and 3. So Row1-Col1 can be 1 or 3.\nRow1-Col4: Missing numbers are 1 and 3. Column4 has 3 (Row2), so Row1-Col4 must be 1.\nSo Row1-Col1 is 3.\n\nNow Row1 becomes: 3 4 2 1\n\nLooking at Row4: Missing numbers are 1 and 2. Column3 has 2 (Row1)",
+        "extracted": "3 4 2 1  \n2 1 4 3  \n1 2 3 4  \n4 3 1 2",
+        "correct": true
+      }
+    ]
+  },
+  "grpo_qwen3_8b_shortest_path": {
+    "shortest_path": [
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "up up left left left left left",
+        "response": " O O O\nO O O X X O\nO O X O O *\n\nassistant\n<think>\nLet me visualize the grid:\nRow 0: O X X O O O\nRow 1: O O X O X O\nRow 2: # O O O O O\nRow 3: O O O X X O\nRow 4: O O X O O *\n\nStarting point (*) is at position (4,5)\nDestination (#) is at position (2,0)\n\nLet me trace the path from start to destination:\nFrom (4,5), can't move up to (3,5) because it's blocked by X\nCan't move left to (4,4) because it's blocked by X\nCan't move right (out of bounds)\nCan't move down (out of bounds)\nSo no path exists from ",
+        "extracted": "infeasible",
+        "correct": false
+      },
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "infeasible",
+        "response": "<think>\nLet me visualize the grid:\nRow 0: * X X X O O X\nRow 1: X X X X X O O\nRow 2: # O O X O O O\nRow 3: O X O O O X O\nRow 4: O O X X X X O\nRow 5: O X X X O X X\nRow 6: X X O X O O X\n\nStarting at (0,0), destination at (2,0)\nCheck possible paths:\nFrom start, can't move right (blocked by X). Can't move down (blocked by X). No path exists.\n</think>\n\n<answer>infeasible</answer>",
+        "extracted": "infeasible",
+        "correct": true
+      },
+      {
+        "question": "Your task is to find the shortest path from the start to the destination point in a grid.\n\nThe grid is represented as a matrix with the following types of cells:\n- *: your starting point\n- #: your des",
+        "ground_truth": "left down left",
+        "response": " O\nO X O X X O\n\nassistant\n<think>\nLet me visualize the grid first:\nRow 0: O O O X O X\nRow 1: O X X O O O\nRow 2: O X O X O X\nRow 3: O O X O * X\nRow 4: X X # O X O\nRow 5: O X O X X O\n\nStarting point (*) is at position (3,4)\nDestination (#) is at position (4,2)\n\nLet me trace the path from (3,4) to (4,2):\nFrom (3,4), can't move up (blocked by X), can't move left (blocked by X), can't move right (blocked by X). Only possible move is down to (4,4), but that's blocked by X. No path exists.\n</think>\n\n<a",
+        "extracted": "infeasible",
+        "correct": false
+      }
+    ]
+  },
+  "grpo_qwen3_8b_basic_arithmetic": {
+    "basic_arithmetic": [
+      {
+        "question": "Calculate -66 - -51.",
+        "ground_truth": "-15",
+        "response": "Calculate -66 - -51.\nassistant\n<think>\n-66 - -51 = -15\n<answer>-15</answer>",
+        "extracted": "-15",
+        "correct": true
+      },
+      {
+        "question": "Calculate ( -630 + 101 ) - 331 + -751.",
+        "ground_truth": "-1611",
+        "response": "<think>\n-630 + 101 = -529\n-529 - 331 = -860\n-860 + -751 = -1611\n<answer>-1611</answer>\n",
+        "extracted": "-1611",
+        "correct": true
+      },
+      {
+        "question": "Calculate -( 52 + -20 + -66 ).",
+        "ground_truth": "34",
+        "response": " -66 ).\nassistant\n<think>\nLet me add: 52 + -20 = 32, 32 + -66 = -34\nResult: -(-34) = 34\n</think>\n\n<answer>34</answer>",
+        "extracted": "34",
+        "correct": true
+      }
+    ]
+  },
+  "grpo_qwen3_8b_syllogism": {
+    "syllogism": [
+      {
+        "question": "Consider these statements:\n1. No students are scientists\n2. Some scientists are parents\n\nDoes it logically follow that:\nSome parents are scientists?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "assistant\n<think>\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      },
+      {
+        "question": "Consider these statements:\n1. All lawyers are animals\n2. All animals are doctors\n\nDoes it logically follow that:\nAll lawyers are doctors?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "assistant\n<think>\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      },
+      {
+        "question": "Consider these statements:\n1. All teachers are programmers\n2. No programmers are tigers\n\nDoes it logically follow that:\nSome teachers are not tigers?\n(Answer Yes or No)",
+        "ground_truth": "Yes",
+        "response": "<think>\n</think>\n\n<answer>Yes</answer>",
+        "extracted": "Yes",
+        "correct": true
+      }
+    ]
+  },
+  "grpo_qwen3_8b_knights_knaves": {
+    "knights_knaves": [
+      {
+        "question": "A very special island is inhabited only by heros and villains. Heros always tell the truth, and villains always lie. You meet 2 inhabitants: Sebastian, and Harper. \"Harper is a hero and Sebastian is a",
+        "ground_truth": "Sebastian is a villain, and Harper is a hero.",
+        "response": "assistant\n<think>\nLet me try to work this out.\nAssuming Sebastian is a hero, his statement is true. So Harper is a hero. But Harper says Sebastian is a villain, which would be a lie. Contradiction.\nAssuming Sebastian is a villain, his statement is false. So at least one is a villain. Harper says Sebastian is a villain, which is true. So Harper is a hero.\n</think>\n\n<answer>Sebastian is a villain, and Harper is a hero</answer>",
+        "extracted": "Sebastian is a villain, and Harper is a hero",
+        "correct": true
+      },
+      {
+        "question": "A very special island is inhabited only by angels and devils. Angels always tell the truth, and devils always lie. You meet 2 inhabitants: Emily, and Oliver. Emily expressed that Oliver is a devil or ",
+        "ground_truth": "Emily is an angel, and Oliver is an angel.",
+        "response": "\")\nassistant\n<think>\nLet me try all possibilities.\nAssuming Emily is an angel, she tells the truth. Oliver is an angel or devil. Oliver says Emily is an angel, which is true. So Oliver is an angel.\n</think>\n\n<answer>Emily is an angel, and Oliver is an angel</answer>",
+        "extracted": "Emily is an angel, and Oliver is an angel",
+        "correct": true
+      },
+      {
+        "question": "A very special island is inhabited only by sages and fools. Sages always tell the truth, and fools always lie. You meet 2 inhabitants: Henry, and David. Henry said, \"David is a sage.\" David was heard ",
+        "ground_truth": "Henry is a sage, and David is a sage.",
+        "response": "\n<think>\nLet me try all possibilities.\nAssuming Henry is a sage, he tells the truth, David is a sage. David's statement is true.\n</think>\n\n<answer>Henry is a sage, and David is a sage</answer>",
+        "extracted": "Henry is a sage, and David is a sage",
+        "correct": true
+      }
+    ]
+  },
+  "grpo_qwen3_8b_leg_counting": {
+    "leg_counting": [
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 cats, 4 leechs, 11 ducks, 13 horses?\n",
+        "ground_truth": "94",
+        "response": "1 ducks, 13 horses?\n\nassistant\n<think>\nLet's calculate each animal's legs:\nCat:5\u00d74=20\nLeech:0\nDuck:11\u00d72=22\nHorse:13\u00d74=52\nTotal:20+22+52=94\n</think>\n\n<answer>94</answer>",
+        "extracted": "94",
+        "correct": true
+      },
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 sheeps, 8 dogs, 15 lobsters, 3 cats, 4 ants, 9 bees, 4 cockroa",
+        "ground_truth": "316",
+        "response": "<think>\nLet's calculate each animal's legs:\nSheep:5\u00d74=20\nDog:8\u00d74=32\nLobster:15\u00d710=150\nCat:3\u00d74=12\nAnt:4\u00d76=24\nBee:9\u00d76=54\nCockroach:4\u00d76=24\nTotal:20+32+150+12+24+54+24=316\n</think>\n\n<answer>316</answer>",
+        "extracted": "316",
+        "correct": true
+      },
+      {
+        "question": "Your task is to count how many legs there are in total when given a list of animals.\n\nNow, how many legs are there in total if you have 5 elephants, 3 crabs, 10 shrimps, 4 lobsters, 5 wasps?\n",
+        "ground_truth": "220",
+        "response": "ps?\n\nassistant\n<think>\nLet me calculate each animal's legs:\nElephant:0\nCrab:10\nShrimp:10\nLobster:10\nWasp:6\nTotal:5*0+3*10+10*10+4*10+5*6=0+30+100+40+30=200\n</think>\n\n<answer>200</answer>",
+        "extracted": "200",
+        "correct": false
+      }
+    ]
+  },
+  "grpo_qwen3_8b_caesar_cipher": {
+    "caesar_cipher": [
+      {
+        "question": "Decrypt this Caesar cipher text: CNKT GT OTIOJKTZ OY JKYIXOHKJ ZNGZ OY GRXKGJE VNUZUMXGVNY UL OZY SGOT LKGZAXKY GXK ZXGTYSOZZKJ COZN ZNK TGXXGZOBK. Provide only the decrypted text as your final answer",
+        "ground_truth": "WHEN AN INCIDENT IS DESCRIBED THAT IS ALREADY PHOTOGRAPHS OF ITS MAIN FEATURES ARE TRANSMITTED WITH THE NARRATIVE",
+        "response": "assistant\n<think>\nThe cipher text is a Caesar cipher with a shift of 2.\nShifting each letter back by 2 positions in the alphabet.\nThe decrypted text is: ANHS DN LNLMGHNX HX FHFVHNGHN XLDX HX ETVHECNVXVJXN TQ HXW EELV JNHWXNQ XNWHXQVXVJNQ XNWHXQVXVJNQ.\n</think>\n\n<answer>ANHS DN LNLMGHNX HX FHFVHNGHN XLDX HX ETVHECNVXVJXN TQ HXW EELV JNHWXNQ XNWHXQVXVJNQ</answer>",
+        "extracted": "ANHS DN LNLMGHNX HX FHFVHNGHN XLDX HX ETVHECNVXVJXN TQ HXW EELV JNHWXNQ XNWHXQVXVJNQ",
+        "correct": false
+      },
+      {
+        "question": "Decrypt this Caesar cipher text: ENQ HMRSDZC NE SGD DMCKDRR RTHSDR NE ZOZQSLDMSR NE SGD NKCDM NMD QNNL EHSSDC VHSG HMFDMHNTR LDBGZMHBZK BNMSQHUZMBDR HR DMNTFG. Provide only the decrypted text as your ",
+        "ground_truth": "FOR INSTEAD OF THE ENDLESS SUITES OF APARTMENTS OF THE OLDEN ONE ROOM FITTED WITH INGENIOUS MECHANICAL CONTRIVANCES IS ENOUGH",
+        "response": "<think>\nThe cipher text is: ENQ HMRSDZC NE SGD DMCKDRR RTHSDR NE ZOZQSLDMSR NE SGD NKCDM NMD QNNL EHSSDC VHSG HMFDMHNTR LDBGZMHBZK BNMSQHUZMBDR HR DMNTFG.\nShifting each letter back by 2 positions in the alphabet:\nENQ -> CNM\nHMRSDZC -> FKSQBC\nNE -> LC\nSGD -> QEB\nDMCKDRR -> BKAQBCQ\nRTHSDR -> PQFQBQ\nNE -> LC\nZOZQSLDMSR -> YMYQKJBCLR\nNE -> LC\nSGD -> QEB\nNKCDM -> LMBBC\nNMD -> LKB\nQNNL -> MLLJ\nEHSSDC -> CGQQBC\nVHSG -> TKET\nHMFDMHNTR -> GKCCKGQS\nLDBGZMHBZK -> KCKEYLCGEY\nBNMSQHUZMBDR -> ZLKRQGZBZQK\nHR -",
+        "extracted": "CNM FKSQBC LC QEB BKAQBCQ PQFQBQ LC YMYQKJBCLR LC QEB LMBBC LKB MLLJ CGQQBC TKET GKCCKGQS KCKEYLCGEY ZLKRQGZBZQK GQ BKNRDC",
+        "correct": false
+      },
+      {
+        "question": "Decrypt this Caesar cipher text: BPMG UIG IB XTMIACZM OQDM IBBMVBQWV BW WVM MLQBWZ IVL ZMNCAM QB BW IVWBPMZ. Provide only the decrypted text as your final answer.",
+        "ground_truth": "THEY MAY AT PLEASURE GIVE ATTENTION TO ONE EDITOR AND REFUSE IT TO ANOTHER",
+        "response": " ZMNCAM QB BW IVWBPMZ. Provide only the decrypted text as your final answer.\nassistant\n<think>\nShifting each letter back by 2 positions in the alphabet.\nThe decrypted text is: <answer>ALIF RHE HU XVKHZYLY MPCL HZZLZPRLZ XW XUO KJRXWY HRJ YLMBYL PZ XW HRXALY</answer>\n",
+        "extracted": "ALIF RHE HU XVKHZYLY MPCL HZZLZPRLZ XW XUO KJRXWY HRJ YLMBYL PZ XW HRXALY",
+        "correct": false
+      }
+    ]
+  },
+  "grpo_qwen3_8b_cryptarithm": {
+    "cryptarithm": [
+      {
+        "question": "Solve this cryptarithm:\n\n   NIX\n+  FWF\n------\n  YYXI\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits that satisfie",
+        "ground_truth": "F=9,I=3,N=2,W=0,X=4,Y=1",
+        "response": "\nassistant\n<think>\nLet me try to solve this cryptarithm step by step.\nFirst, I'll write down the equation vertically to see the column-wise additions:\n   N I X\n+  F W F\n--------\n  Y Y X I\n\nLooking at the rightmost column (units place):\nX + F = I (possibly with a carryover)\n\nLooking at the next column (tens place):\nI + W + carryover = X (possibly with a carryover)\n\nLooking at the next column (hundreds place):\nN + F + carryover = Y (possibly with a carryover)\n\nLooking at the leftmost column (thous",
+        "extracted": "A=9,B=8,C=7,D=6,E=5,F=1",
+        "correct": false
+      },
+      {
+        "question": "Solve this cryptarithm:\n\n   GXRX\n    VVN\n+ ERENN\n-------\n  EVXYN\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits t",
+        "ground_truth": "E=6,G=3,N=2,R=0,V=4,X=8,Y=7",
+        "response": "<think>\nLet me try to solve this cryptarithm step by step.\nFirst, I'll write down the equation vertically to see the column-wise additions:\n   G X R X\n     V V N\n+  E R E N N\n------------\n  E V X Y N\n\nLooking at the rightmost column (units place):\nX + N + N = N (mod 10)\nThis implies that X + 2N ends with N, so X + 2N \u2261 N (mod 10)\nSimplifying: X + N \u2261 0 (mod 10)\nSo X = (10 - N) mod 10\n\nNow let's look at the next column (tens place):\nX + N + N + carry = Y (mod 10)\nWe already know X = (10 - N) mod ",
+        "extracted": "A=9,B=3,C=0,D=8,E=1,F=2,G=7,H=5,I=6,J=4",
+        "correct": false
+      },
+      {
+        "question": "Solve this cryptarithm:\n\n    ZCR\n+ VJZRC\n-------\n  VKOOI\n\nEach letter stands for a unique digit (0-9). No leading letter can be zero.\nProvide a comma separated mapping from letters to digits that sati",
+        "ground_truth": "C=7,I=2,J=0,K=1,O=3,R=5,V=8,Z=6",
+        "response": "assistant\n<think>\nLet me try to solve this cryptarithm step by step.\n\nFirst, I need to understand the structure of the problem. We have:\n\n    ZCR\n+ VJZRC\n-------\n  VKOOI\n\nEach letter represents a unique digit (0-9), and no leading letter can be zero. So Z, V, K, and I cannot be zero.\n\nLet me write down the columns from right to left (units to tens to hundreds, etc.) and analyze the possible carries:\n\nColumn 1 (units place):\nR + C = I (possibly plus carry from previous column, but this is the fir",
+        "extracted": "Since Z is a digit (0-9), C - 10 +",
+        "correct": false
+      }
+    ]
+  }
+}

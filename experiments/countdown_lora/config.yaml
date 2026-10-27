@@ -1,0 +1,107 @@
+# ============================================================================
+# LoRA + GRPO: Countdown on Qwen3-4B-Instruct-2507 (single RTX 3090 Ti, 24GB)
+# ============================================================================
+# Usage: python train_grpo.py experiments/countdown_lora/config.yaml
+#
+# Recipe sources:
+#   - Thinking Machines, "LoRA Without Regret" (Schulman et al., 2025):
+#     RL needs little capacity (rank 1-32 matches full FT); LoRA on ALL linear
+#     layers (attention-only underperforms); optimal LR ~10x the full-FT LR;
+#     LoRA is less tolerant of large batches -> keep batch small.
+#   - "Evaluating PEFT Methods for RLVR" (arXiv 2512.23165): rank 1 bottlenecks
+#     reasoning on small models; r=16-32, alpha=32, lr 1e-5 is the sweet spot.
+#     Avoid PiSSA/MiLoRA (SVD init collapses under RL). DoRA slightly > LoRA
+#     (set lora.use_dora: true to try; ~slower).
+#   - DAPO / Dr.GRPO: beta=0 (no KL, no reference model -> saves 8GB here),
+#     token-level loss, mask truncated completions.
+#
+# Full FT of a 4B model needs ~64GB (bf16 weights + fp32 Adam states); LoRA
+# trains here in ~20GB because only the adapters carry optimizer state.
+# ============================================================================
+
+model:
+  name_or_path: Qwen/Qwen3-4B-Instruct-2507
+  torch_dtype: bfloat16
+  # FlashAttention-2 via the HF `kernels` hub (prebuilt; no flash-attn compile).
+  # Needs kernels>=0.16,<0.17 with transformers 5.17.
+  attn_implementation: kernels-community/flash-attn2
+
+lora:
+  enabled: true
+  r: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: all-linear
+  use_dora: false
+
+# vLLM rollouts colocated on the same GPU. gpu_memory_utilization is the
+# fraction of TOTAL GPU memory vLLM reserves (its own 8GB bf16 weight copy +
+# KV cache; 32 seqs x ~1k tok ~= 4.7GB KV). Sleep mode releases it during the
+# training step so the HF model has room for backward.
+vllm:
+  enabled: true
+  mode: colocate
+  gpu_memory_utilization: 0.5
+  enable_sleep_mode: true
+  max_model_length: 1280         # prompt (~250 tok) + max_completion_length 768
+
+environment:
+  name: reasoning_gym
+  task_name: countdown
+  samples: 4000
+  task_params:
+    min_numbers: 4
+    max_numbers: 5
+    min_target: 10
+    max_target: 200
+
+seed: 42
+
+training:
+  output_dir: experiments/countdown_lora/results/grpo_countdown_lora_qwen3_4b
+  learning_rate: 1.0e-5          # ~10x full-FT GRPO LR (1e-6)
+  lr_scheduler_type: constant_with_warmup
+  warmup_steps: 10
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  # Batch semantics (TRL 0.29+/1.x): per_device_train_batch_size counts COMPLETIONS.
+  # One optimizer step = generation_batch_size completions
+  #   = 4 prompts x 8 generations = 32, fully on-policy.
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 8
+  max_steps: 200
+  loss_type: dapo                # token-level normalization (TRL default)
+  beta: 0.0                      # no KL -> no reference model needed
+  scale_rewards: group
+  mask_truncated_completions: true
+  gradient_checkpointing: true
+  bf16: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 50
+  save_total_limit: 2
+  dataloader_num_workers: 0
+  report_to: ["tensorboard"]
+
+generation:
+  num_generations: 8
+  generation_batch_size: 32      # = per_device_train_batch_size * gradient_accumulation_steps
+  max_completion_length: 768
+  temperature: 1.0
+  stop_strings: ["</answer>"]
+
+system_prompt: |
+  You are a helpful assistant. You first think about the reasoning process in the mind and then provide the user with the answer. Show your work in <think> </think> tags. And return the final equation in <answer> </answer> tags, for example <answer> (1 + 2) / 3 </answer>.
+
+validation:
+  enabled: true
+  eval_steps: 25
+  num_samples: 64
+  temperature: 0.0
+  batch_size: 32
+  val_seed: 9999
+
+generation_logging:
+  enabled: true
+  every_n_steps: 25
+  print_n_examples: 2

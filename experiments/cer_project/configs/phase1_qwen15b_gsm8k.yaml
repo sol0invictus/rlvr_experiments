@@ -1,0 +1,58 @@
+model:
+  name_or_path: /code-fsx/sunguha/models/Qwen2.5-3B-Instruct
+  torch_dtype: bfloat16
+  attn_implementation: flash_attention_2
+
+data:
+  dataset_name: openai/gsm8k
+  subset: main
+  split: train
+  prompt_column: question
+  answer_column: answer
+  local_train_path: /scratch/sunguha/cer_project/data/gsm8k_train
+  local_test_path: /scratch/sunguha/cer_project/data/gsm8k_test
+
+environment:
+  name: gsm8k
+
+training:
+  output_dir: /scratch/sunguha/cer_project/phase1_instrumented_grpo
+  learning_rate: 1.0e-6
+  gradient_accumulation_steps: 2
+  per_device_train_batch_size: 2
+  num_train_epochs: 1
+  bf16: true
+  logging_steps: 5
+  save_strategy: steps
+  save_steps: 100
+  max_steps: 500
+  warmup_steps: 20
+  report_to:
+    - tensorboard
+  gradient_checkpointing: true
+  lr_scheduler_type: cosine
+
+generation:
+  max_completion_length: 512
+  temperature: 0.7
+  num_generations: 8
+
+system_prompt: |
+  A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>
+
+instrumentation:
+  enabled: true
+  log_dir: /scratch/sunguha/cer_project/phase1_instrumented_grpo/token_diagnostics
+  log_every_n_steps: 5
+  num_entropy_bins: 20
+
+generation_logging:
+  enabled: true
+  every_n_steps: 20
+  print_n_examples: 2
+
+validation:
+  enabled: true
+  eval_steps: 50
+  num_samples: 200
+  temperature: 0.0
