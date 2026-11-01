@@ -83,3 +83,44 @@ def test_rescore_rewrites_fields(tmp_path):
     assert all(r["correct"] == [1] for r in new)
     assert {r["task"]: r["correct_paper"][0] for r in new if r["task"] == "mini_sudoku"} == {"mini_sudoku": 0}
     assert (out / "full_results.jsonl.orig").exists()
+
+
+def test_degenerate_responses_do_not_crash_scoring():
+    """Gate attempt 1 died on a response of ~1000 nested parentheses (RecursionError in parse_strict)."""
+    import reasoning_gym as rg
+    from experiments.atom_decomposition.eval_atoms import FullScorer, score_atom
+    from experiments.atom_decomposition.tasks.arithmetic import parse_strict
+    junk = ["(" * 5000, "-" * 5000, "(-" * 3000, "9" * 5000, "(" * 5000 + "1" + ")" * 5000]
+    for j in junk:
+        assert parse_strict(j) is None
+        text = f"<think>x</think><answer>{j}</answer>"
+        for check, gold in (("paren_tree", "(1 + 2)"), ("int", "5"), ("int_set", "1, 2"),
+                            ("cell", "(1, 1)"), ("cell_set", "(1, 1)")):
+            assert score_atom(check, gold, text)["correct"] == 0
+        for task in ("basic_arithmetic", "mini_sudoku", "gcd", "maze", "tower_of_hanoi"):
+            entry = rg.create_dataset(task, size=1, seed=2)[0]
+            assert FullScorer()(task, entry, text)["correct"] == 0
+
+
+def test_scoring_exception_counts_as_wrong_and_is_tallied():
+    from experiments.atom_decomposition.common import CHECKERS
+    from experiments.atom_decomposition.eval_atoms import SCORING_ERRORS, score_atom
+
+    def boom(extracted, gold):
+        raise ValueError("bad")
+    CHECKERS["boom"] = boom
+    try:
+        before = sum(SCORING_ERRORS.values())
+        assert score_atom("boom", "1", "<answer>1</answer>") == \
+            {"correct": 0, "correct_paper": 0, "correct_strict": 0}
+        assert sum(SCORING_ERRORS.values()) == before + 3
+    finally:
+        del CHECKERS["boom"]
+
+
+def test_resume_drops_a_cut_off_last_line(tmp_path):
+    from experiments.atom_decomposition.eval_atoms import _done_keys
+    p = tmp_path / "r.jsonl"
+    p.write_text('{"key": "a"}\n{"key": "b"}\n{"key": "c', encoding="utf-8")
+    assert _done_keys(str(p), lambda r: r["key"]) == {"a", "b"}
+    assert p.read_text(encoding="utf-8") == '{"key": "a"}\n{"key": "b"}\n'

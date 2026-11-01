@@ -70,6 +70,7 @@ def render(t, top: bool = True) -> str:
 # ----------------------------------------------------------------------
 
 _TOK = re.compile(r"\s*(\d+|[-+*/()])")
+MAX_PARSE_TOKENS = 300   # gold answers are far shorter; degenerate output would overflow the recursion
 
 
 def _tokens(s: str) -> Optional[List[str]]:
@@ -93,7 +94,7 @@ def parse_strict(s: str):
     A bare top-level 'E OP E' (outermost parentheses left off) is also accepted.
     """
     toks = _tokens(s)
-    if not toks:
+    if not toks or len(toks) > MAX_PARSE_TOKENS or any(len(t) > 100 for t in toks):
         return None
     tree = _parse_tokens(toks)
     return tree if tree is not None else _parse_tokens(["("] + toks + [")"])

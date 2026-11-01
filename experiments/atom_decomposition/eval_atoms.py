@@ -37,7 +37,7 @@ import random
 import re
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 import reasoning_gym as rg
 
@@ -165,8 +165,21 @@ RULES = {"correct": extract_post_think,
          "correct_strict": lambda t: extract_answer(t, "last")}
 
 
+SCORING_ERRORS = Counter()
+
+
+def _guarded(default, fn, *args, **kwargs):
+    """One odd model response must not end a run: an exception while scoring counts the sample as wrong
+    and is tallied in the manifest. The raw response is saved either way, so rescore.py can redo it."""
+    try:
+        return fn(*args, **kwargs)
+    except Exception as e:
+        SCORING_ERRORS[f"{getattr(fn, '__name__', 'scorer')}: {type(e).__name__}"] += 1
+        return default
+
+
 def score_atom(check, gold, text):
-    return {f: int(CHECKERS[check](ext(text), gold)) for f, ext in RULES.items()}
+    return {f: int(_guarded(False, CHECKERS[check], ext(text), gold)) for f, ext in RULES.items()}
 
 
 class FullScorer:
@@ -180,9 +193,9 @@ class FullScorer:
 
     def __call__(self, task, entry, text):
         ds = self.datasets.setdefault(task, rg.create_dataset(task, size=1, seed=0))
-        out = {f: self._one(task, entry, ext(text), ds) for f, ext in RULES.items()}
+        out = {f: _guarded(0, self._one, task, entry, ext(text), ds) for f, ext in RULES.items()}
         ans = extract_post_think(text)
-        out["rg_score"] = float(ds.score_answer(answer=ans, entry=entry)) if ans is not None else 0.0
+        out["rg_score"] = float(_guarded(0.0, ds.score_answer, answer=ans, entry=entry)) if ans is not None else 0.0
         return out
 
 
@@ -191,8 +204,13 @@ class FullScorer:
 # ----------------------------------------------------------------------
 
 def _done_keys(path, keyfn):
+    """Keys already written. A last line cut off by a dead VM is dropped, and redone."""
     if not os.path.exists(path):
         return set()
+    with open(path, "rb+") as f:
+        data = f.read()
+        if data and not data.endswith(b"\n"):
+            f.truncate(data.rfind(b"\n") + 1)
     return {keyfn(json.loads(l)) for l in open(path)}
 
 
@@ -353,7 +371,8 @@ def main():
     summary = summarize(a.out_dir)
     manifest = {"args": vars(a), "system_prompt": DEFAULT_SYSTEM_PROMPT,
                 "sampling_defaults": getattr(backend, "sampling", None), "n_instances": len(rows),
-                "n_unique_atoms": n_atoms, "wall_s": round(time.time() - t0), "summary": summary}
+                "n_unique_atoms": n_atoms, "wall_s": round(time.time() - t0),
+                "scoring_errors": dict(SCORING_ERRORS), "summary": summary}
     with open(os.path.join(a.out_dir, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
     print(json.dumps(summary, indent=2))
