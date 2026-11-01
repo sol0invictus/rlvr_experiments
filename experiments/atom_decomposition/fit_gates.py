@@ -56,18 +56,19 @@ def load_build(build_dir):
     return inst, atoms
 
 
-def load_results(results_dir, temperature=1.0):
+def load_results(results_dir, temperature=1.0, field="correct"):
     """Atom and full-task outcomes at the gate temperature (full_results.jsonl also holds the
-    1-sample T = 0.1 accuracy rows, which the gates do not use)."""
+    1-sample T = 0.1 accuracy rows, which the gates do not use). `field` picks the scoring rule:
+    "correct" (primary), "correct_paper" or "correct_strict"."""
     atom_obs, full_obs = {}, {}
     for l in open(os.path.join(results_dir, "atom_results.jsonl")):
         r = json.loads(l)
-        atom_obs[r["key"]] = (sum(r["correct"]), len(r["correct"]), float(np.mean(r["has_answer_tag"])))
+        atom_obs[r["key"]] = (sum(r[field]), len(r[field]), float(np.mean(r["has_answer_tag"])))
     for l in open(os.path.join(results_dir, "full_results.jsonl")):
         r = json.loads(l)
         if r.get("temperature", temperature) != temperature:
             continue
-        full_obs[(r["task"], r["idx"])] = (sum(r["correct"]), len(r["correct"]))
+        full_obs[(r["task"], r["idx"])] = (sum(r[field]), len(r[field]))
     return atom_obs, full_obs
 
 
@@ -268,16 +269,16 @@ def _init_worker(inst, atoms):
 
 
 def _one_sim(args):
-    task, truth, w, base_acc, k_atom, seed, n_repeats, n_boot = args
+    task, truth, w, base_acc, k_atom, atom_acc, seed, n_repeats, n_boot = args
     inst, atoms = _SHARED["inst"], _SHARED["atoms"]
     rng = np.random.default_rng(seed)
-    atom_obs, full_obs = simulate(task, inst, atoms, truth, w, base_acc, rng, k_atom=k_atom)
+    atom_obs, full_obs = simulate(task, inst, atoms, truth, w, base_acc, rng, k_atom=k_atom, atom_acc=atom_acc)
     r = evaluate_task(task, inst, atoms, atom_obs, full_obs, n_repeats=n_repeats, n_boot=n_boot, seed=seed)
     return r["gate_b_verdict"], r.get("gate_a_verdict"), r["evaluable"]
 
 
 def power(task, inst, atoms, n_sims, weights, base_accs, k_atoms=(8,), n_repeats=2, n_boot=500,
-          workers=None, seed=0):
+          workers=None, seed=0, atom_acc=0.8):
     graphs = TASKS[task].GRAPHS
     truths = list(graphs) + ["difficulty"]
     out = []
@@ -285,10 +286,10 @@ def power(task, inst, atoms, n_sims, weights, base_accs, k_atoms=(8,), n_repeats
                 for truth in truths for w in (weights if truth != "difficulty" else [0.0])]
     with ProcessPoolExecutor(workers, initializer=_init_worker, initargs=(inst, atoms)) as ex:
         for k_atom, base_acc, truth, w in settings:
-            jobs = [(task, truth, w, base_acc, k_atom, seed + 1000 * j, n_repeats, n_boot)
+            jobs = [(task, truth, w, base_acc, k_atom, atom_acc, seed + 1000 * j, n_repeats, n_boot)
                     for j in range(n_sims)]
             res = list(ex.map(_one_sim, jobs))
-            row = {"k_atom": k_atom, "base_acc": base_acc, "truth": truth, "w": w, "n_sims": n_sims,
+            row = {"k_atom": k_atom, "atom_acc": atom_acc, "base_acc": base_acc, "truth": truth, "w": w, "n_sims": n_sims,
                    "evaluable": float(np.mean([e for _, _, e in res])),
                    "gate_b_pass": float(np.mean([b == "pass" for b, _, _ in res]))}
             if len(graphs) == 2:
@@ -306,6 +307,7 @@ def main():
     pr.add_argument("--build_dir", required=True)
     pr.add_argument("--results_dir", required=True)
     pr.add_argument("--tasks", default=None)
+    pr.add_argument("--field", default="correct", help="scoring rule: correct | correct_paper | correct_strict")
     pr.add_argument("--out", required=True)
     pp = sub.add_parser("power")
     pp.add_argument("--build_dir", required=True)
@@ -314,13 +316,14 @@ def main():
     pp.add_argument("--weights", default="0.25,0.5,0.75")
     pp.add_argument("--base_accs", default="0.14,0.4")
     pp.add_argument("--k_atoms", default="8", help="samples per atom question to simulate, e.g. 4,8")
+    pp.add_argument("--atom_acc", type=float, default=0.8, help="mean atom accuracy to simulate")
     pp.add_argument("--workers", type=int, default=None)
     pp.add_argument("--out", required=True)
     a = p.parse_args()
 
     inst, atoms = load_build(a.build_dir)
     if a.mode == "real":
-        atom_obs, full_obs = load_results(a.results_dir)
+        atom_obs, full_obs = load_results(a.results_dir, field=a.field)
         tasks = a.tasks.split(",") if a.tasks else sorted({r["task"] for r in inst})
         res = [evaluate_task(t, inst, atoms, atom_obs, full_obs) for t in tasks]
         evaluable = [r for r in res if r["evaluable"]]
@@ -331,7 +334,7 @@ def main():
         summary = {"task": a.task, "rows": power(
             a.task, inst, atoms, a.n_sims, [float(x) for x in a.weights.split(",")],
             [float(x) for x in a.base_accs.split(",")], [int(x) for x in a.k_atoms.split(",")],
-            workers=a.workers)}
+            workers=a.workers, atom_acc=a.atom_acc)}
     with open(a.out, "w") as f:
         json.dump(summary, f, indent=2)
 

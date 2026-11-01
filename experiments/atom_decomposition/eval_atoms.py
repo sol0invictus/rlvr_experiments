@@ -18,12 +18,14 @@ Usage (from the repo root):
         --out_dir experiments/atom_decomposition/results/pilot_seed2026
 
 Outputs in --out_dir (JSONL, appended chunk by chunk; a rerun skips what is already there):
-    atom_results.jsonl  {key, task, check, answer, correct, correct_strict, has_answer_tag, n_tokens, responses}
-    full_results.jsonl  {task, idx, temperature, answer, correct, correct_strict, rg_score,
+    atom_results.jsonl  {key, task, check, answer, correct, correct_paper, correct_strict, has_answer_tag,
+                         n_tokens, responses}
+    full_results.jsonl  {task, idx, temperature, answer, correct, correct_paper, correct_strict, rg_score,
                          has_answer_tag, n_tokens, responses}   (one row per instance and temperature)
     manifest.json       arguments, sampling settings, counts, wall time
 
-Scoring: extraction rule last_fallback (the paper's; correct_strict uses `last` only). Atoms use the
+Scoring: `correct` uses extract_post_think (last <answer>, else the text after </think>, else the paper's
+fallback); `correct_paper` the paper's last_fallback rule; `correct_strict` tags only. Atoms use the
 checkers in common.py. Full tasks from the paper's 10 use evaluate_replication.verify_answer (the paper's
 rules); other tasks count as correct when reasoning-gym's own scorer gives 1.0. rg_score is always logged.
 """
@@ -143,27 +145,45 @@ def make_prompt(backend, question):
 # Scoring
 # ----------------------------------------------------------------------
 
+def extract_post_think(text):
+    """Primary rule (PHASE_C.md §4.3, adopted 2026-11-01): last <answer>, else the text after the last
+    </think>, else the paper's '####' / last-line fallback. The SFT model often answers after </think>
+    without tags, and a last-line fallback then keeps one row of a sudoku grid."""
+    tagged = extract_answer(text, "last")
+    if tagged is not None:
+        return tagged
+    if "</think>" in text:
+        after = text.rsplit("</think>", 1)[1].strip()
+        if after:
+            return after
+    return extract_answer(text, "last_fallback")
+
+
+# field -> extraction; "correct" is the primary rule, the others are reported alongside
+RULES = {"correct": extract_post_think,
+         "correct_paper": lambda t: extract_answer(t, "last_fallback"),
+         "correct_strict": lambda t: extract_answer(t, "last")}
+
+
 def score_atom(check, gold, text):
-    return (int(CHECKERS[check](extract_answer(text, "last_fallback"), gold)),
-            int(CHECKERS[check](extract_answer(text, "last"), gold)))
+    return {f: int(CHECKERS[check](ext(text), gold)) for f, ext in RULES.items()}
 
 
 class FullScorer:
     def __init__(self):
         self.datasets = {}
 
-    def __call__(self, task, entry, text):
-        ext = extract_answer(text, "last_fallback")
-        strict = extract_answer(text, "last")
-        ds = self.datasets.setdefault(task, rg.create_dataset(task, size=1, seed=0))
-        rg_score = float(ds.score_answer(answer=ext, entry=entry)) if ext is not None else 0.0
+    def _one(self, task, entry, ans, ds):
         if task in PAPER_TASKS:
-            correct = verify_answer(task, ext, entry["answer"], entry["metadata"])
-            correct_strict = verify_answer(task, strict, entry["answer"], entry["metadata"])
-        else:
-            correct = rg_score >= 1.0
-            correct_strict = strict is not None and float(ds.score_answer(answer=strict, entry=entry)) >= 1.0
-        return int(correct), int(correct_strict), rg_score
+            return int(verify_answer(task, ans, entry["answer"], entry["metadata"]))
+        return int(ans is not None and float(ds.score_answer(answer=ans, entry=entry)) >= 1.0)
+
+    def __call__(self, task, entry, text):
+        ds = self.datasets.setdefault(task, rg.create_dataset(task, size=1, seed=0))
+        out = {f: self._one(task, entry, ext(text), ds) for f, ext in RULES.items()}
+        ans = extract_post_think(text)
+        out["rg_score"] = float(ds.score_answer(answer=ans, entry=entry)) if ans is not None else 0.0
+        return out
 
 
 # ----------------------------------------------------------------------
@@ -206,8 +226,7 @@ def run_full(backend, rows, temperatures_n, max_new_tokens, out_dir, chunk):
         def finish(u, sm, temperature=temperature):
             scored = [scorer(u["task"], u, t) for t, _ in sm]
             return {"task": u["task"], "idx": u["idx"], "temperature": temperature, "answer": u["answer"],
-                    "correct": [c for c, _, _ in scored], "correct_strict": [c for _, c, _ in scored],
-                    "rg_score": [r for _, _, r in scored],
+                    **{f: [x[f] for x in scored] for f in list(RULES) + ["rg_score"]},
                     "has_answer_tag": [int(bool(ANSWER_TAG.search(t))) for t, _ in sm],
                     "n_tokens": [k for _, k in sm], "responses": [t for t, _ in sm]}
         run_units(backend, [dict(u, temperature=temperature) for u in full_units(rows)], n, max_new_tokens,
@@ -228,7 +247,7 @@ def run_atoms(backend, build_dir, k_atom, max_new_tokens, temperature, out_dir, 
     def finish(u, sm):
         scored = [score_atom(u["check"], u["answer"], t) for t, _ in sm]
         return {"key": u["key"], "task": u["task"], "check": u["check"], "answer": u["answer"],
-                "correct": [c for c, _ in scored], "correct_strict": [c for _, c in scored],
+                **{f: [x[f] for x in scored] for f in RULES},
                 "has_answer_tag": [int(bool(ANSWER_TAG.search(t))) for t, _ in sm],
                 "n_tokens": [k for _, k in sm], "responses": [t for t, _ in sm]}
     run_units(backend, units, k_atom, max_new_tokens, temperature,

@@ -3,9 +3,10 @@
 # or the VM is unreachable for 30 minutes, or the hard cap is reached, delete the VM.
 # (The VM also deletes itself; this covers the case where that fails.)
 #
-#   bash scripts/hyperstack/watch.sh VM_ID IP HOURS_CAP
+#   bash scripts/hyperstack/watch.sh VM_ID IP HOURS_CAP [DONE_FILE]
+#   (DONE_FILE defaults to the overnight run's /data/rlvr/status/overnight.done)
 set -uo pipefail
-vm_id=$1; ip=$2; cap_h=${3:-8.5}
+vm_id=$1; ip=$2; cap_h=${3:-8.5}; done_file=${4:-/data/rlvr/status/overnight.done}
 here=$(cd "$(dirname "$0")" && pwd)
 start=$(date +%s); cap_s=$(python3 -c "print(int(float('$cap_h') * 3600))")
 unreachable_since=""
@@ -23,7 +24,7 @@ while true; do
         ""|None|DELETED|DELETING) echo "[watch] $(date -u +%FT%TZ) VM $vm_id is gone ($state); done"; exit 0;;
     esac
     if (( now - start > cap_s )); then delete_vm "hard cap ${cap_h}h reached"; exit 0; fi
-    if "${ssh_cmd[@]}" 'test -f /data/rlvr/status/overnight.done' 2>/dev/null; then
+    if "${ssh_cmd[@]}" "test -f $done_file" 2>/dev/null; then
         sleep 120   # give the VM's own self-delete a chance first
         delete_vm "run reported done"; exit 0
     fi

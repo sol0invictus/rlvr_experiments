@@ -10,7 +10,8 @@
 #        Then the difficulty rule (pilot_decide.py, PHASE_C.md §4.2) re-pilots out-of-band gate tasks
 #        (up to 2 more rounds) and freezes their configs. Then a small atom pilot (25 instances per
 #        gate task, seed 2026) to calibrate the power simulation and check the atom prompts.
-# gate   the gate run: build seed 2027 x 500 per gate task with the frozen configs, then every atom
+# gate   the gate run: rescore the pilot and recompute the frozen configs (freeze), build seed 2027 x 500
+#        per gate task with them, then every atom
 #        (8 samples) and every full task (8 samples + 1 at T=0.1). fit_gates.py runs on the Mac.
 #
 # DRY=1 R=<dir> runs the whole thing with the fake backend and tiny sizes, no GPU and no self-delete
@@ -34,6 +35,20 @@ GATE_TASKS=basic_arithmetic,mini_sudoku,maze,gcd
 COUNTDOWN='{"countdown": {"min_numbers": 4, "max_numbers": 5, "min_target": 50, "max_target": 200}}'
 mkdir -p "$R"
 failed=()
+
+# Rescore the pilot rounds with the current scoring rules, rerun the difficulty rule, write frozen configs.
+freeze() {
+    local rounds
+    for d in $(ls -d $R/pilot/r[0-9]* | sort); do $PY.rescore --results_dir $d >/dev/null || return 1; done
+    rounds=$(ls -d $R/pilot/r[0-9]* | sort | paste -sd, -)
+    $PY.pilot_decide --round_dirs $rounds --out $R/pilot/decision.json >/dev/null || return 1
+    python - "$R/pilot/decision.json" "$R/frozen_task_configs.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+json.dump({t: s["config"] for t, s in d["state"].items()}, open(sys.argv[2], "w"), indent=2)
+print("frozen:", json.dumps({t: s["config"] for t, s in d["state"].items()}))
+PY
+}
 
 finish() {
     printf 'stage=%s\nfailed=%s\nend=%s\n' "$STAGE" "${failed[*]:-none}" "$(date -u +%FT%TZ)" > "$R/$STAGE.done"
@@ -59,13 +74,7 @@ if [ "$STAGE" = pilot ]; then
         rounds=$rounds,$R/pilot/r$n
     done
     # Freeze: tasks still pending after the last round keep their last config (flagged in decision.json).
-    $PY.pilot_decide --round_dirs $rounds --out $R/pilot/decision.json >/dev/null
-    python - "$R/pilot/decision.json" "$R/frozen_task_configs.json" <<'PY'
-import json, sys
-d = json.load(open(sys.argv[1]))
-json.dump({t: s["config"] for t, s in d["state"].items()}, open(sys.argv[2], "w"), indent=2)
-print("frozen:", open(sys.argv[2]).read())
-PY
+    freeze || { failed+=(freeze); exit 1; }
 
     # --- atom pilot: calibrate the power simulation, check atom prompts on the real model --
     frozen=$(cat $R/frozen_task_configs.json)
@@ -75,7 +84,9 @@ PY
         --out_dir $R/pilot/atoms_eval || failed+=(atom_pilot)
 
 elif [ "$STAGE" = gate ]; then
-    [ -f $R/frozen_task_configs.json ] || { echo "no frozen configs: run STAGE=pilot first"; failed+=(no_frozen); exit 1; }
+    [ -d $R/pilot/r1 ] || { echo "no pilot results: run STAGE=pilot first"; failed+=(no_pilot); exit 1; }
+    # Recompute the freeze from the saved pilot responses, so a scoring change since the pilot applies.
+    freeze || { failed+=(freeze); exit 1; }
     frozen=$(cat $R/frozen_task_configs.json)
     J gate_build 20m $PY.build_atoms --tasks $GATE_TASKS --n $N_GATE --seed 2027 \
         --task_configs "$frozen" --out_dir $R/atoms_seed2027 || { failed+=(gate_build); exit 1; }
