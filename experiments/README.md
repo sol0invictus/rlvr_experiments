@@ -8,6 +8,7 @@ Each folder is one self-contained study built on the shared framework at the rep
 | `rlvr_geometry_paper/` | Four-phase study behind the paper *"The Geometry and Transfer of RLVR in Small Reasoning Models"*: cross-task transfer matrix, atomic curriculum (ARS), weight-space geometry, task-vector merging. Includes the LaTeX paper. | Complete; paper in pre-submission |
 | `countdown_lora/` | LoRA + GRPO on countdown with Qwen3-4B-Instruct-2507 on a single RTX 3090 Ti (vLLM rollouts + FlashAttention-2). | Smoke-tested; full run not yet done (see `notes/`) |
 | `cer_project/` | Competence-Edge Routing: per-token SFT/RL loss routing, advantage-gated GRPO variants. | See its `README.md` |
+| `atom_decomposition/` | Solver-traced atoms for a task's decomposition, and an eval-only test of whether atom success predicts full-task success (basic_arithmetic, mini_sudoku, maze, gcd). | Atom builder, gate fitting + power simulation, tests; eval not yet run |
 
 ## Conventions
 
