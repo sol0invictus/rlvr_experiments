@@ -3,8 +3,10 @@
 # Starts from configs/replication/grpo_basic_arithmetic_4b_vllm.yaml (the paper's Direct-RLVR recipe)
 # with these changes:
 #   - 4 prompts per optimizer step instead of 1 (8 completions each, 32 per step). Each step is still
-#     one fully on-policy generation batch: generation_batch_size = per_device_train_batch_size (8)
-#     x gradient_accumulation_steps (4). Learning rate unchanged.
+#     one fully on-policy generation batch: generation_batch_size = per_device_train_batch_size (4)
+#     x gradient_accumulation_steps (8). Learning rate unchanged. Micro-batches of 8 ran out of memory
+#     next to vLLM on rare long batches (2026-11-11, seeds 1-2 at steps 15 and 163); the DAPO loss is
+#     normalised over the whole generation batch, so the split does not change the update.
 #   - vLLM colocate generation (passed the HF-vs-vLLM rollout equivalence check at 4B, ~4.7x faster),
 #     with sleep mode so the KV cache is freed during the backward pass.
 #   - weights-only checkpoints every 100 steps (disk: 3 seeds x 3 x 8 GB must fit on the volume).
@@ -44,7 +46,7 @@ training:
   beta: 0.0
   bf16: true
   epsilon_high: null
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 8
   gradient_checkpointing: true
   kl_coeff: 0.0
   learning_rate: 5.0e-06
@@ -56,7 +58,7 @@ training:
   max_steps: 300
   num_train_epochs: 2
   output_dir: /data/rlvr/curriculum/arith_A_seed1
-  per_device_train_batch_size: 8
+  per_device_train_batch_size: 4
   report_to:
   - tensorboard
   save_only_model: true
