@@ -33,6 +33,10 @@ def parse_args():
     )
     parser.add_argument("config", nargs="?", default="config.yaml", help="Path to YAML config")
     parser.add_argument("--max_steps", type=int, default=None, help="Override max_steps (for smoke testing)")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Override seed (also the training-set seed), for repeat runs of one config")
+    parser.add_argument("--output_dir", default=None,
+                        help="Override training.output_dir; generation logs follow it to <output_dir>/generations")
     return parser.parse_args()
 
 
@@ -42,6 +46,12 @@ def main():
 
     print(f"Loading config from {config_path}")
     config = load_config(config_path)
+    if args.seed is not None:
+        config['seed'] = args.seed
+    if args.output_dir is not None:
+        config['training']['output_dir'] = args.output_dir
+        if 'generation_logging' in config:
+            config['generation_logging']['log_dir'] = os.path.join(args.output_dir, 'generations')
 
     # Initialize Environment
     print("Initializing Environment...")
