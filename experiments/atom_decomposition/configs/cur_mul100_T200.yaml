@@ -1,0 +1,67 @@
+# ============================================================================
+# Curriculum study, arm "mul100 -> T200": 100 steps of the L2 multiplication atom (atom_mul_4b.yaml,
+# checkpoint-100) then 200 steps of the full task, so 300 steps in all like the baseline. The full-task
+# stage is identical to baseline_arith_4b_nolp.yaml (correctness only, no length penalty) except the
+# start model and the step count. Question: does full-task training keep the atom's short two-part
+# multiplication (~60 tokens) or rediscover long multiplication (~130+)? Goal: no-penalty accuracy (94%)
+# with shorter traces.
+# ============================================================================
+environment:
+  length_penalty: false
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 32
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 25
+  print_n_examples: 1
+model:
+  name_or_path: /data/rlvr/curriculum/atom_mul_seed1/checkpoint-100
+  torch_dtype: bfloat16
+seed: 1
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false
+  max_grad_norm: 1.0
+  max_steps: 200
+  num_train_epochs: 2
+  output_dir: /data/rlvr/curriculum/cur_mul100_T200_seed1
+  save_final: false   # checkpoint-200 has the same weights
+  per_device_train_batch_size: 2
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 100
+  save_strategy: steps
+  warmup_ratio: 0.0
+vllm:
+  enabled: true
+  stop_strings: true
+  mode: colocate
+  gpu_memory_utilization: 0.2
+  enable_sleep_mode: false
+  importance_sampling_correction: false
