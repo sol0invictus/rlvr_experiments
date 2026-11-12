@@ -1,0 +1,82 @@
+# ============================================================================
+# Curriculum study, arm "mixed + mild length penalty". cur_mixed.yaml (half multiplication atoms with a 96-token cap,
+# strict </think> format) plus a mild length penalty. Question: do atoms let the model shorten without losing accuracy?
+# Mild length penalty: reward = correctness + 0.5 x length score, where the length score (correct answers only)
+# is 1 - chars/8192, so 100 vs 400 tokens is worth ~0.05, against 1 for a correct answer. Advantages are scaled
+# by the whole batch's reward std (scale_rewards: batch), not per group: per-group scaling made the old penalty
+# the only signal in all-correct groups (50-80% of groups) and blew it up to full strength, which drove the
+# 63.6 -> 57.2 collapse of baseline_arith_4b.yaml.
+# Checkpoints go to the VM's local disk (/ephemeral; the volume has ~4 GB free) and are lost with the VM;
+# metrics, generation logs and evals are copied to /data.
+# ============================================================================
+environment:
+  atom_mix:
+    fraction: 0.5
+    max_tokens: 96
+    task_params:
+      min_terms: 2
+      max_terms: 2
+      min_digits: 2
+      max_digits: 4
+      operators: ['*']
+  strict_format: true
+  length_penalty: true
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 32
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 25
+  print_n_examples: 1
+model:
+  name_or_path: /data/rlvr/sft_qwen3_4b
+  torch_dtype: bfloat16
+seed: 1
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: /ephemeral/curriculum/cur_mixed_lp_seed1
+  save_final: false   # checkpoint-300 has the same weights
+  reward_weights: [1.0, 0.5]   # correctness, length
+  scale_rewards: batch   # mild: see header
+  per_device_train_batch_size: 2
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 100
+  save_strategy: steps
+  warmup_ratio: 0.0
+vllm:
+  enabled: true
+  stop_strings: true
+  mode: colocate
+  gpu_memory_utilization: 0.2
+  enable_sleep_mode: false
+  importance_sampling_correction: false
