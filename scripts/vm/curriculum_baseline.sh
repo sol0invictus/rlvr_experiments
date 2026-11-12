@@ -15,7 +15,7 @@
 # no self-delete), to check paths and the report.
 set -uo pipefail
 DRY=${DRY:-0}
-SEEDS=${SEEDS:-"1 2 3"}
+SEEDS=${SEEDS:-"1"}   # one seed while the setup is being fixed; SEEDS="1 2 3" for the final runs
 CONFIG=experiments/atom_decomposition/configs/baseline_arith_4b.yaml
 if [ "$DRY" = 1 ]; then
     R=${R:?set R=<scratch dir> for a dry run}
