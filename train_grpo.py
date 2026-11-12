@@ -351,9 +351,15 @@ def main():
     print("Starting training...")
     trainer.train()
     
-    # Save Model
-    trainer.save_model(config['training']['output_dir'])
-    print(f"Model saved to {config['training']['output_dir']}")
+    # The per-step metrics, also when no checkpoint is saved (diagnostic runs)
+    out_dir = config['training']['output_dir']
+    os.makedirs(out_dir, exist_ok=True)
+    trainer.state.save_to_json(os.path.join(out_dir, 'trainer_state.json'))
+
+    # Save Model (training.save_final: false skips the 8 GB final weights, for diagnostic runs)
+    if training_conf.get('save_final', True):
+        trainer.save_model(out_dir)
+        print(f"Model saved to {out_dir}")
 
 if __name__ == "__main__":
     main()

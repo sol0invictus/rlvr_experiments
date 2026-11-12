@@ -1,0 +1,67 @@
+# ============================================================================
+# Baseline diagnostic NOSLEEP (2026-11-11). The 3-seed baseline (baseline_arith_4b.yaml, vLLM colocate +
+# sleep mode, no importance-sampling correction) lost accuracy while its training reward stayed flat
+# and the pre-clip grad norm grew ~7 -> 500; the earlier HF-generate run was stable. Each diagnostic
+# is the baseline for 60 steps on seed 1 (same puzzles as arith_A_seed1) with ONE change:
+#   vLLM sleep mode OFF (vLLM memory 0.3 -> 0.2 and micro-batches of 2 so it fits)
+# No checkpoints and no final weights: only trainer_state.json and generation logs (every 10 steps).
+# ============================================================================
+environment:
+  length_penalty: true
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 32
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 10
+  print_n_examples: 1
+model:
+  name_or_path: /data/rlvr/sft_qwen3_4b
+  torch_dtype: bfloat16
+seed: 1
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false
+  max_grad_norm: 1.0
+  max_steps: 60
+  num_train_epochs: 2
+  output_dir: /data/rlvr/curriculum/diag/diag_nosleep
+  per_device_train_batch_size: 2
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 100
+  save_strategy: 'no'
+  save_final: false
+  warmup_ratio: 0.0
+vllm:
+  enabled: true
+  stop_strings: true
+  mode: colocate
+  gpu_memory_utilization: 0.2
+  enable_sleep_mode: false
+  importance_sampling_correction: false
