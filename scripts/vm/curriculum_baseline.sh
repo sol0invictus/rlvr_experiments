@@ -16,7 +16,8 @@
 set -uo pipefail
 DRY=${DRY:-0}
 SEEDS=${SEEDS:-"1"}   # one seed while the setup is being fixed; SEEDS="1 2 3" for the final runs
-CONFIG=experiments/atom_decomposition/configs/baseline_arith_4b.yaml
+ARM=${ARM:-A}   # run names arith_<ARM>_seed<k>; e.g. ARM=Anolp CONFIG=.../baseline_arith_4b_nolp.yaml
+CONFIG=${CONFIG:-experiments/atom_decomposition/configs/baseline_arith_4b.yaml}
 if [ "$DRY" = 1 ]; then
     R=${R:?set R=<scratch dir> for a dry run}
     SFT=none; BACKEND="--backend fake --fake_p_correct 0.6"; N=20
@@ -31,10 +32,11 @@ E=$R/eval
 PY="python -m experiments.atom_decomposition"
 EVAL_ARGS="full --tasks basic_arithmetic --n $N --seed 9999 --k 16 --t01 $BACKEND"
 mkdir -p "$R" "$E"
+DONE=$R/baseline_$ARM.done
 failed=()
 
 finish() {
-    printf 'failed=%s\nend=%s\n' "${failed[*]:-none}" "$(date -u +%FT%TZ)" > "$R/baseline.done"
+    printf 'failed=%s\nend=%s\n' "${failed[*]:-none}" "$(date -u +%FT%TZ)" > "$DONE"
     [ "$DRY" = 1 ] && return
     nvidia-smi > /data/logs/nvidia_smi_end_curriculum.txt 2>&1 || true
     sync
@@ -42,7 +44,7 @@ finish() {
     bash "$HOME/self_delete.sh"
 }
 trap finish EXIT
-rm -f "$R/baseline.done"   # a marker left by an earlier run would tell the local watcher we are done
+rm -f "$DONE"   # a marker left by an earlier run would tell the local watcher we are done
 
 J eval_sft 40m $PY.eval_atoms $EVAL_ARGS --model $SFT --out_dir $E/sft/step000 || failed+=(eval_sft)
 
@@ -52,7 +54,7 @@ if [ "$DRY" != 1 ] && [ ! -f $R/smoke.ok ]; then
 fi
 
 for s in $SEEDS; do
-    run=arith_A_seed$s
+    run=arith_${ARM}_seed$s
     if [ ! -f $R/$run/checkpoint-300/config.json ]; then
         J train_$run 4h python train_grpo.py $CONFIG --seed $s --output_dir $R/$run || { failed+=(train_$run); continue; }
     fi
@@ -64,6 +66,6 @@ for s in $SEEDS; do
     done
 done
 
-$PY.curriculum_report --eval_root $E --run_root $R --eval_n $N --out $R/report_A.json | tee $R/report_A.txt \
+$PY.curriculum_report --eval_root $E --run_root $R --eval_n $N --out $R/report_$ARM.json | tee $R/report_$ARM.txt \
     || failed+=(report)
 echo "CURRICULUM BASELINE DONE (failed: ${failed[*]:-none})"
