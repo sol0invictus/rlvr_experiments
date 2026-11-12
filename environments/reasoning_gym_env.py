@@ -58,6 +58,13 @@ class ReasoningGymEnvironment:
             self.env_config.get('chars_per_token')
             or self.task_params.pop('chars_per_token', 4)
         )
+        # Optional atom mixing (curriculum study): a share of the prompts are atoms of the same task,
+        # generated with other task_params, and an atom completion longer than max_tokens scores 0.
+        #   atom_mix: {fraction: 0.5, max_tokens: 96, task_params: {min_terms: 2, max_terms: 2, ...}}
+        self.atom_mix = self.env_config.get('atom_mix') or None
+        # strict_format: the answer counts only if it comes after </think> (blocks answering inside
+        # the think block, which the </answer> stop string turns into a way to cut reasoning short)
+        self.strict_format = bool(self.env_config.get('strict_format', False))
         
     def get_dataset(self, config: Dict[str, Any]) -> Dataset:
         """Generate dataset with prompts and ground truth answers."""
@@ -96,6 +103,25 @@ class ReasoningGymEnvironment:
                 "task": self.task_name,
                 "metadata": json.dumps(item.get('metadata', {})),
             })
+
+        if self.atom_mix:
+            import random
+            frac = float(self.atom_mix['fraction'])
+            n_atom = round(len(all_data) * frac / (1 - frac))
+            atom_ds = reasoning_gym.create_dataset(
+                self.task_name, size=n_atom, seed=seed + 1, **self.atom_mix.get('task_params', {}))
+            for row in all_data:
+                row["is_atom"] = False
+            all_data += [{
+                "prompt": [{"role": "user", "content": item['question']}],
+                "ground_truth": str(item['answer']),
+                "task": self.task_name,
+                "metadata": json.dumps(item.get('metadata', {})),
+                "is_atom": True,
+            } for item in atom_ds]
+            random.Random(seed).shuffle(all_data)
+            print(f"  Atom mix: {n_atom} atoms ({frac:.0%}), max_tokens={self.atom_mix.get('max_tokens')}, "
+                  f"params {self.atom_mix.get('task_params', {})}")
 
         print(f"  Generated {len(all_data)} samples")
         if all_data:
@@ -175,11 +201,22 @@ class ReasoningGymEnvironment:
         
         # Get metadata if available (needed for countdown target)
         metadata_list = kwargs.get('metadata', [None] * len(completions))
-        
+        is_atom = kwargs.get('is_atom') or [False] * len(completions)
+        completion_ids = kwargs.get('completion_ids')
+        max_atom = (self.atom_mix or {}).get('max_tokens')
+
         for i, (completion, truth) in enumerate(zip(completions, ground_truth)):
             completion = self._unwrap_completion(completion)
+            if self.strict_format:
+                completion = completion.split('</think>', 1)[1] if '</think>' in completion else ''
+            if max_atom and is_atom[i]:
+                n_tok = (len(completion_ids[i]) if completion_ids is not None
+                         else len(self._unwrap_completion(completions[i])) / 3)
+                if n_tok > max_atom:
+                    rewards.append(0.0)
+                    continue
             extracted = self._extract_answer(completion)
-            
+
             if extracted is None:
                 rewards.append(0.0)
                 continue
