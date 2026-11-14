@@ -171,7 +171,16 @@ def main():
     print(f"  generation_batch_size: {generation_batch_size} "
           f"(num_generations={num_generations} × per_device_bs={per_device_train_batch_size})")
 
+    # Prompt truncation: some TRL versions have max_prompt_length (default 512, left-truncating, which
+    # would cut a maze grid); pass the config's value where the field exists.
+    import dataclasses
+    prompt_kwargs = {}
+    if 'max_prompt_length' in {f.name for f in dataclasses.fields(GRPOConfig)}:
+        prompt_kwargs['max_prompt_length'] = gen_conf.get('max_prompt_length', 512)
+    print(f"  prompt truncation: {prompt_kwargs or 'none (TRL has no max_prompt_length)'}")
+
     training_args = GRPOConfig(
+        **prompt_kwargs,
         output_dir=training_conf['output_dir'],
         learning_rate=float(training_conf['learning_rate']),
         loss_type=training_conf.get('loss_type', 'grpo'),

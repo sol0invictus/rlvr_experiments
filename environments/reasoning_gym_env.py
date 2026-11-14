@@ -108,27 +108,64 @@ class ReasoningGymEnvironment:
             import random
             frac = float(self.atom_mix['fraction'])
             n_atom = round(len(all_data) * frac / (1 - frac))
-            atom_ds = reasoning_gym.create_dataset(
-                self.task_name, size=n_atom, seed=seed + 1, **self.atom_mix.get('task_params', {}))
+            source = self.atom_mix.get('source', 'task')
             for row in all_data:
                 row["is_atom"] = False
-            all_data += [{
-                "prompt": [{"role": "user", "content": item['question']}],
-                "ground_truth": str(item['answer']),
-                "task": self.task_name,
-                "metadata": json.dumps(item.get('metadata', {})),
-                "is_atom": True,
-            } for item in atom_ds]
+                row["check"] = ""
+            if source == 'decomposition':
+                atoms = self._decomposed_atoms(n_atom, seed + 1)
+            else:   # 'task': whole instances of the same task with other task_params
+                atom_ds = reasoning_gym.create_dataset(
+                    self.task_name, size=n_atom, seed=seed + 1, **self.atom_mix.get('task_params', {}))
+                atoms = [{
+                    "prompt": [{"role": "user", "content": item['question']}],
+                    "ground_truth": str(item['answer']),
+                    "task": self.task_name,
+                    "metadata": json.dumps(item.get('metadata', {})),
+                    "is_atom": True,
+                    "check": "",
+                } for item in atom_ds]
+            all_data += atoms
             random.Random(seed).shuffle(all_data)
-            print(f"  Atom mix: {n_atom} atoms ({frac:.0%}), max_tokens={self.atom_mix.get('max_tokens')}, "
-                  f"params {self.atom_mix.get('task_params', {})}")
+            print(f"  Atom mix ({source}): {len(atoms)} rows ({frac:.0%}), "
+                  f"max_tokens={self.atom_mix.get('max_tokens')}, params {self.atom_mix.get('task_params', {})}")
 
         print(f"  Generated {len(all_data)} samples")
         if all_data:
             print(f"  Sample answer: {all_data[0]['ground_truth'][:80]}")
 
         return Dataset.from_list(all_data)
-    
+
+    def _decomposed_atoms(self, n_atom: int, seed: int) -> List[Dict[str, Any]]:
+        """Solver-traced atoms (experiments/atom_decomposition): every step of the solver's first graph on
+        instances generated with atom_mix.task_params, until n_atom rows; a seeded random subset of those.
+        Each row carries its checker name in 'check' (scored by correctness_reward)."""
+        import random
+        from experiments.atom_decomposition.tasks import TASKS
+        mod = TASKS[self.task_name]
+        params = self.atom_mix.get('task_params', {})
+        rows, size = [], max(64, n_atom // 4)
+        ds = reasoning_gym.create_dataset(self.task_name, size=size, seed=seed, **params)
+        for i in range(size):
+            for node in mod.trace(ds[i], mod.GRAPHS[0]):
+                rows.append({
+                    "prompt": [{"role": "user", "content": node.question}],
+                    "ground_truth": node.answer,
+                    "task": self.task_name,
+                    "metadata": json.dumps({"atom": node.id, "layer": node.layer, "type": node.type}),
+                    "is_atom": True,
+                    "check": node.check,
+                })
+        if len(rows) < n_atom:
+            raise ValueError(f"only {len(rows)} atoms from {size} instances, need {n_atom}")
+        rows = random.Random(seed).sample(rows, n_atom)
+        layers = {}
+        for r in rows:
+            k = json.loads(r["metadata"])["layer"]
+            layers[k] = layers.get(k, 0) + 1
+        print(f"  Decomposed atoms from {size} instances: {layers}")
+        return rows
+
     def get_val_dataset(self, config: Dict[str, Any]):
         """Generate a small held-out validation set with a different seed."""
         if not REASONING_GYM_AVAILABLE:
@@ -204,6 +241,7 @@ class ReasoningGymEnvironment:
         is_atom = kwargs.get('is_atom') or [False] * len(completions)
         completion_ids = kwargs.get('completion_ids')
         max_atom = (self.atom_mix or {}).get('max_tokens')
+        checks = kwargs.get('check') or [""] * len(completions)
 
         for i, (completion, truth) in enumerate(zip(completions, ground_truth)):
             completion = self._unwrap_completion(completion)
@@ -220,7 +258,15 @@ class ReasoningGymEnvironment:
             if extracted is None:
                 rewards.append(0.0)
                 continue
-            
+
+            if checks[i]:   # a solver-traced atom: its own checker
+                from experiments.atom_decomposition.common import CHECKERS
+                try:
+                    rewards.append(float(bool(CHECKERS[checks[i]](extracted, truth))))
+                except Exception:
+                    rewards.append(0.0)
+                continue
+
             metadata = metadata_list[i] if i < len(metadata_list) else None
             if isinstance(metadata, str):
                 try:
