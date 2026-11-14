@@ -103,3 +103,27 @@ def test_build_is_deterministic(tmp_path):
     assert (tmp_path / "a" / "atoms.jsonl").read_text() == (tmp_path / "b" / "atoms.jsonl").read_text()
     rows = [json.loads(l) for l in open(tmp_path / "a" / "instances.jsonl")]
     assert len(rows) == 20 * len(TASKS)
+
+
+def test_maze_reading_atoms_match_grid():
+    """Grid-reading atoms (graph "reading", not in GRAPHS): answers match the raw grid, pass their checker,
+    and the choice of rows and cells is the same on every call."""
+    from experiments.atom_decomposition.tasks import maze
+    assert "reading" not in maze.GRAPHS
+    ds = rg.create_dataset("maze", size=200, seed=3, min_dist=10, max_dist=15, min_grid_size=10, max_grid_size=14)
+    for i in range(200):
+        s = ds[i]
+        g, w = s["metadata"]["grid"], s["metadata"]["wall"]
+        nodes = maze.trace(s, "reading")
+        assert [x.question for x in nodes] == [x.question for x in maze.trace(s, "reading")]
+        assert {x.type for x in nodes} == {"locate", "read_row", "read_neighbours"}
+        for x in nodes:
+            assert CHECKERS[x.check](x.answer, x.answer)
+            got = parse_cells(x.answer)
+            if x.type == "read_row":
+                r = int(x.id[3:])
+                assert got == {(r, c + 1) for c, ch in enumerate(g[r - 1]) if ch != w}
+            elif x.type == "read_neighbours":
+                r, c = map(int, x.id[3:].split("_"))
+                exp = {(r + a, c + b) for a, b in ((-1, 0), (1, 0), (0, -1), (0, 1)) if g[r + a - 1][c + b - 1] != w}
+                assert got == exp and exp

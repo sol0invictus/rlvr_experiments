@@ -50,7 +50,7 @@ def check_trace(task: str, sample: dict) -> None:
             assert gcd_value(sample, graph) == int(sample["answer"]), (graph, m["numbers"])
 
 
-def build(tasks, n, seed, max_l2, out_dir, task_configs=None):
+def build(tasks, n, seed, max_l2, out_dir, task_configs=None, graphs=None):
     task_configs = task_configs or {}
     os.makedirs(out_dir, exist_ok=True)
     rng = random.Random(seed)
@@ -67,11 +67,14 @@ def build(tasks, n, seed, max_l2, out_dir, task_configs=None):
                 row = {"task": task, "idx": idx, "question": sample["question"],
                        "answer": sample["answer"], "metadata": sample["metadata"],
                        "difficulty": mod.difficulty_features(sample), "graphs": {}}
-                for graph in mod.GRAPHS:
+                for graph in (graphs or mod.GRAPHS):
                     nodes = mod.trace(sample, graph)
+                    l0 = [x for x in nodes if x.layer == "L0"]   # grid-reading atoms (maze "reading")
                     l1 = [x for x in nodes if x.layer == "L1"]
                     l2 = [x for x in nodes if x.layer == "L2"]
                     info = {"n_L1": len(l1), "n_L2_total": len(l2)}
+                    if l0:
+                        info["n_L0"] = len(l0)
                     if task == "mini_sudoku" and graph == "propagation":
                         info["solved_by_singles"] = trace_propagation(sample["metadata"]["puzzle"])[2]
                     if max_l2 and len(l2) > max_l2:
@@ -79,7 +82,7 @@ def build(tasks, n, seed, max_l2, out_dir, task_configs=None):
                         l2 = [x for i, x in enumerate(l2) if i in keep]
                     info["n_L2_asked"] = len(l2)
                     row["graphs"][graph] = info
-                    for x in l1 + l2:
+                    for x in l0 + l1 + l2:
                         key = hashlib.sha1(f"{task}|{idx}|{x.question}".encode()).hexdigest()[:16]
                         fa.write(json.dumps({
                             "task": task, "idx": idx, "graph": graph, "node": x.id,
@@ -94,6 +97,7 @@ def build(tasks, n, seed, max_l2, out_dir, task_configs=None):
     for c in counts.values():
         c["unique_questions"] = len(c["unique_questions"])
     manifest = {"tasks": tasks, "n": n, "seed": seed, "max_l2": max_l2, "task_configs": task_configs,
+                "graphs": graphs,
                 "reasoning_gym": importlib.metadata.version("reasoning-gym"), "counts": counts}
     with open(os.path.join(out_dir, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
@@ -110,9 +114,12 @@ def main():
     p.add_argument("--task_configs", default="{}",
                    help='JSON of reasoning-gym config overrides per task, e.g. '
                         '\'{"maze": {"min_dist": 1, "max_dist": 6}}\'; default = the training configs')
+    p.add_argument("--graphs", default=None,
+                   help="comma-separated graphs to build (default: each task's GRAPHS), e.g. 'reading' for maze")
     p.add_argument("--out_dir", required=True)
     a = p.parse_args()
-    m = build(a.tasks.split(","), a.n, a.seed, a.max_l2, a.out_dir, json.loads(a.task_configs))
+    m = build(a.tasks.split(","), a.n, a.seed, a.max_l2, a.out_dir, json.loads(a.task_configs),
+              a.graphs.split(",") if a.graphs else None)
     print(json.dumps(m["counts"], indent=2))
 
 

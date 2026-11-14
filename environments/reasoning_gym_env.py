@@ -144,10 +144,11 @@ class ReasoningGymEnvironment:
         from experiments.atom_decomposition.tasks import TASKS
         mod = TASKS[self.task_name]
         params = self.atom_mix.get('task_params', {})
+        graph = self.atom_mix.get('graph', mod.GRAPHS[0])
         rows, size = [], max(64, n_atom // 4)
         ds = reasoning_gym.create_dataset(self.task_name, size=size, seed=seed, **params)
         for i in range(size):
-            for node in mod.trace(ds[i], mod.GRAPHS[0]):
+            for node in mod.trace(ds[i], graph):
                 rows.append({
                     "prompt": [{"role": "user", "content": node.question}],
                     "ground_truth": node.answer,
@@ -163,7 +164,7 @@ class ReasoningGymEnvironment:
         for r in rows:
             k = json.loads(r["metadata"])["layer"]
             layers[k] = layers.get(k, 0) + 1
-        print(f"  Decomposed atoms from {size} instances: {layers}")
+        print(f"  Decomposed atoms ({graph}) from {size} instances: {layers}")
         return rows
 
     def get_val_dataset(self, config: Dict[str, Any]):

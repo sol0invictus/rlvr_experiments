@@ -6,13 +6,20 @@ layer at a time (L2): given the cells at distance d and those reached earlier, l
 cells first reached at distance d+1. The goal first appears in layer D = the answer.
 Moves are up/down/left/right, as in reasoning-gym's own BFS. Coordinates are
 (row, column), numbered from 1 at the top-left.
+
+Graph "reading" (not in GRAPHS, so gate fits and default builds leave it out): grid-reading atoms, the
+skill every model fails at on big grids. L1 locate start and goal; L0 list the open cells of a row
+(3 interior rows) and the open neighbours of a cell (3 open cells), chosen by a seed taken from the grid.
 """
 
+import random
+import zlib
 from typing import List, Set, Tuple
 
 from ..common import Node, fmt_cells
 
 GRAPHS = ("bfs",)
+EXTRA_GRAPHS = ("reading",)
 COORDS = "Rows and columns are numbered from 1, starting at the top-left corner."
 Cell = Tuple[int, int]
 
@@ -53,7 +60,9 @@ def bfs_layers(meta: dict) -> List[Set[Cell]]:
 
 
 def trace(sample: dict, graph: str = "bfs") -> List[Node]:
-    assert graph in GRAPHS, graph
+    assert graph in GRAPHS + EXTRA_GRAPHS, graph
+    if graph == "reading":
+        return _reading(sample)
     meta = sample["metadata"]
     grid, wall, path = meta["grid"], meta["wall"], meta["path"]
     maze_txt = "```\n" + "\n".join(grid) + "\n```"
@@ -85,6 +94,45 @@ def trace(sample: dict, graph: str = "bfs") -> List[Node]:
         nodes.append(Node(f"layer{d + 1}", "L2", "bfs_layer", q,
                           fmt_cells(_one_based(layers[d + 1])), "cell_set", deps))
     return nodes
+
+
+def _reading(sample: dict, n_rows: int = 3, n_cells: int = 3) -> List[Node]:
+    meta = sample["metadata"]
+    grid, wall, path = meta["grid"], meta["wall"], meta["path"]
+    head, start, goal = _head(meta)
+    rng = random.Random(zlib.crc32("\n".join(grid).encode()))
+    nodes = [
+        Node("start", "L1", "locate", head + f"What are the coordinates of the start '{meta['start']}'? "
+             "Answer as (row, column).", fmt_cells(_one_based([start])), "cell"),
+        Node("goal", "L1", "locate", head + f"What are the coordinates of the goal '{meta['goal']}'? "
+             "Answer as (row, column).", fmt_cells(_one_based([goal])), "cell"),
+    ]
+    rows = [r for r in range(1, len(grid) - 1) if any(ch != wall for ch in grid[r])]
+    for r in sorted(rng.sample(rows, min(n_rows, len(rows)))):
+        open_cells = [(r, c) for c in range(len(grid[r])) if grid[r][c] != wall]
+        nodes.append(Node(f"row{r + 1}", "L0", "read_row", head + (
+            f"Which cells in row {r + 1} are open (not walls)? The start and the goal count as open. "
+            "List them as (row, column) pairs separated by commas."),
+            fmt_cells(_one_based(open_cells)), "cell_set"))
+    cells = [(r, c) for r in range(len(grid)) for c in range(len(grid[r]))
+             if grid[r][c] != wall and any(_open(grid, wall, r + dr, c + dc)
+                                           for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1)))]
+    for r, c in sorted(rng.sample(cells, min(n_cells, len(cells)))):
+        nbrs = [(r + dr, c + dc) for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1)) if _open(grid, wall, r + dr, c + dc)]
+        nodes.append(Node(f"nbr{r + 1}_{c + 1}", "L0", "read_neighbours", head + (
+            f"Which of the four cells next to ({r + 1}, {c + 1}) (up, down, left, right) are open (not walls)? "
+            "List them as (row, column) pairs separated by commas."),
+            fmt_cells(_one_based(nbrs)), "cell_set"))
+    return nodes
+
+
+def _head(meta: dict):
+    grid, wall, path = meta["grid"], meta["wall"], meta["path"]
+    maze_txt = "```\n" + "\n".join(grid) + "\n```"
+    legend = (f"Legend: '{wall}' = Wall, '{path}' = Passage, '{meta['start']}' = start, "
+              f"'{meta['goal']}' = goal.")
+    return (f"Here is a maze:\n\n{maze_txt}\n{legend}\n{COORDS}\n",
+            _find(grid, meta["start"]), _find(grid, meta["goal"]))
 
 
 def difficulty_features(sample: dict) -> dict:

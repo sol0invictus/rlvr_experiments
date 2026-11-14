@@ -1,0 +1,80 @@
+# ============================================================================
+# Maze follow-up, arm Cread: hard mazes with half the prompts replaced by grid-reading atoms of hard-size mazes
+# (experiments/atom_decomposition/tasks/maze.py graph "reading"): L1 locate start/goal, L0 list a row's open
+# cells, L0 list a cell's open neighbours; each scored by its own checker. Every model misreads 13-22% of the
+# cells it names, so reading is the sub-skill full-task reward cannot isolate. The atoms come from the target
+# grid sizes (not easier mazes), so this arm adds decomposition without easiness. 300 steps, like A/B/C.
+# ============================================================================
+environment:
+  atom_mix:
+    fraction: 0.5
+    source: decomposition
+    graph: reading
+    task_params:   # hard-size mazes, as in the target
+      min_dist: 10
+      max_dist: 15
+      min_grid_size: 10
+      max_grid_size: 14
+  strict_format: true
+  length_penalty: false
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: maze
+  task_params:
+    min_dist: 10
+    max_dist: 15
+    min_grid_size: 10
+    max_grid_size: 14
+generation:
+  generation_batch_size: 32
+  max_completion_length: 1024   # training only (evals keep 2048): a few 2048-token ramblers per step made it 38 s/step
+  max_prompt_length: 1024   # atom prompts list reached cells (up to ~900 chars)
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 25
+  print_n_examples: 1
+model:
+  name_or_path: /data/rlvr/sft_qwen3_4b
+  torch_dtype: bfloat16
+seed: 1
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: /ephemeral/maze/maze_Cread_seed1
+  save_final: false   # checkpoint-300 has the same weights
+  per_device_train_batch_size: 2
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 100
+  save_strategy: steps
+  warmup_ratio: 0.0
+vllm:
+  enabled: true
+  stop_strings: true
+  mode: colocate
+  gpu_memory_utilization: 0.2
+  enable_sleep_mode: false
+  importance_sampling_correction: false
