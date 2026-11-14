@@ -17,7 +17,7 @@ environment:
     max_grid_size: 14
 generation:
   generation_batch_size: 32
-  max_completion_length: 2048
+  max_completion_length: 1024   # training only (evals keep 2048): a few 2048-token ramblers per step made it 38 s/step
   max_prompt_length: 1024   # atom prompts list reached cells (up to ~900 chars)
   num_generations: 8
   stop_strings:

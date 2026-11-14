@@ -61,7 +61,7 @@ for name in $RUNS; do
     run=${name}_seed1
     cfg=experiments/atom_decomposition/configs/$name.yaml
     if [ ! -f $CK/$run/checkpoint-300/config.json ]; then
-        J train_$run 3h python train_grpo.py $cfg --output_dir $CK/$run || failed+=(train_$run)
+        J train_$run 270m python train_grpo.py $cfg --output_dir $CK/$run || failed+=(train_$run)
     fi
     mkdir -p $R/$run
     cp $CK/$run/trainer_state.json $R/$run/ 2>/dev/null || cp $CK/$run/checkpoint-*/trainer_state.json $R/$run/ 2>/dev/null || true
