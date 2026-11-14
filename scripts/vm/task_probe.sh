@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Task probe for the next atom study, on a 1x A100 80GB VM with the data volume at /data
+# Task probe for the next atom study, on a 1-GPU VM (A100 80GB or RTX A6000 48GB) with the data volume at /data
 # (scripts/vm/setup.sh). Eval only, no training. Ends by deleting the VM.
 #
 #   tmux new -d -s probe 'bash scripts/vm/task_probe.sh'
@@ -41,10 +41,10 @@ trap finish EXIT
 rm -f "$DONE"
 
 [ -f $R/default/manifest.json ] || \
-    J probe_default 60m $PY.eval_atoms $ARGS --tasks knights_knaves,maze,shortest_path,zebra_puzzles,countdown \
+    J probe_default 100m $PY.eval_atoms $ARGS --tasks knights_knaves,maze,shortest_path,zebra_puzzles,countdown \
         --out_dir $R/default || failed+=(probe_default)
 [ -f $R/variant/manifest.json ] || \
-    J probe_variant 45m $PY.eval_atoms $ARGS --tasks knights_knaves,zebra_puzzles \
+    J probe_variant 70m $PY.eval_atoms $ARGS --tasks knights_knaves,zebra_puzzles \
         --task_configs '{"knights_knaves": {"n_people": 4}, "zebra_puzzles": {"num_people": 3, "num_characteristics": 3}}' \
         --out_dir $R/variant || failed+=(probe_variant)
 echo "PROBE DONE (failed: ${failed[*]:-none})"
