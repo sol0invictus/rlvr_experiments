@@ -7,7 +7,8 @@
 # 1. Model-size probe (eval only): raw Qwen/Qwen3-8B and, as the same-family control, raw Qwen/Qwen3-4B (neither
 #    has our SFT). Default and hard mazes (200 prompts, eval seed 9999, 4 samples at T=1.0, 4096 tokens, since
 #    raw Qwen3 thinks at length) and the grid-reading atoms (maze_next's reading build, 2 samples per atom).
-#    Models download to /ephemeral/hf (the volume has ~4 GB free).
+#    Models download to /ephemeral/hf (the volume has ~4 GB free). run_job.sh re-sources /data/env.sh, which
+#    sets HF_HOME=/data/hf, so the probe commands set HF_HOME themselves through env.
 # 2. Arms (experiments/atom_decomposition/configs/), seed 1, from the 4B SFT start:
 #      maze_Prefix     300 steps  hard + hard mazes with the first k moves of a shortest path in the prompt
 #      maze_Prog       300 steps  hard only, plus a 0.5-weight legal-progress reward on the reasoning
@@ -25,6 +26,7 @@ RUNS=${RUNS:-"maze_Prefix maze_Prog maze_B1000 maze_Cread1000"}
 PROBE_MODELS=${PROBE_MODELS:-"Qwen/Qwen3-8B Qwen/Qwen3-4B"}
 HARD='{"maze": {"min_dist": 10, "max_dist": 15, "min_grid_size": 10, "max_grid_size": 14}}'
 PY="python -m experiments.atom_decomposition"
+PYP="env HF_HOME=/ephemeral/hf $PY"   # probe jobs: raw models download to local disk, not the volume
 if [ "$DRY" = 1 ]; then
     R=${R:?set R=<scratch dir> for a dry run}; CK=$R/ephemeral; SFT=none
     BACKEND="--backend fake --fake_p_correct 0.3"; N=10; NB=3
@@ -38,7 +40,6 @@ else
     source /data/env.sh
     R=/data/rlvr/maze_scale; CK=/ephemeral/maze; SFT=/data/rlvr/sft_qwen3_4b
     sudo mkdir -p $CK /ephemeral/hf && sudo chown "$USER" $CK /ephemeral/hf
-    export HF_HOME=/ephemeral/hf
     BACKEND="--backend vllm"; N=200
     BFS_BUILD=/data/rlvr/maze_probe/hard/build
     READ_BUILD=/data/rlvr/maze_next/reading_build
@@ -69,14 +70,14 @@ rm -f "$DONE"   # a marker left by an earlier run would tell the local watcher w
 for m in $PROBE_MODELS; do
     tag=probe_$(basename $m | tr 'A-Z-' 'a-z_')     # probe_qwen3_8b
     model=$m; [ "$DRY" = 1 ] && model=none
-    [ -f $E/$tag/default/manifest.json ] || J ${tag}_default 60m $PY.eval_atoms $PFULL --model $model \
+    [ -f $E/$tag/default/manifest.json ] || J ${tag}_default 60m $PYP.eval_atoms $PFULL --model $model \
         --out_dir $E/$tag/default || failed+=(${tag}_default)
-    [ -f $E/$tag/hard/manifest.json ] || J ${tag}_hard 75m $PY.eval_atoms $PFULL --task_configs "$HARD" \
+    [ -f $E/$tag/hard/manifest.json ] || J ${tag}_hard 75m $PYP.eval_atoms $PFULL --task_configs "$HARD" \
         --model $model --out_dir $E/$tag/hard || failed+=(${tag}_hard)
-    [ -f $E/$tag/reading/manifest.json ] || J ${tag}_reading 45m $PY.eval_atoms $PREAD --model $model \
+    [ -f $E/$tag/reading/manifest.json ] || J ${tag}_reading 45m $PYP.eval_atoms $PREAD --model $model \
         --out_dir $E/$tag/reading || failed+=(${tag}_reading)
 done
-[ "$DRY" = 1 ] || rm -rf /ephemeral/hf   # free the disk before training
+[ "$DRY" = 1 ] || sudo rm -rf /ephemeral/hf   # free the disk before training
 
 # --- 2. arms ---
 steps() { case $1 in *1000) echo "300 600 1000" ;; *) echo "100 200 300" ;; esac; }
