@@ -8,18 +8,20 @@
 #    has our SFT). Default and hard mazes (200 prompts, eval seed 9999, 4 samples at T=1.0, 4096 tokens, since
 #    raw Qwen3 thinks at length) and the grid-reading atoms (maze_next's reading build, 2 samples per atom).
 #    Models download to /ephemeral/hf (the volume has ~4 GB free).
-# 2. Arms (experiments/atom_decomposition/configs/), seed 1, 1000 steps each from the 4B SFT start:
-#      maze_B1000      hard + easier whole mazes
-#      maze_Cread1000  hard + grid-reading atoms of hard-size mazes
-#    Evals as in maze_next.sh: hard at steps 300/600/1000 (8 samples at T=1.0 + 1 at T=0.1, 2048 tokens);
-#    at step 1000 also default mazes, reading atoms and the BFS atom build.
+# 2. Arms (experiments/atom_decomposition/configs/), seed 1, from the 4B SFT start:
+#      maze_Prefix     300 steps  hard + hard mazes with the first k moves of a shortest path in the prompt
+#      maze_Prog       300 steps  hard only, plus a 0.5-weight legal-progress reward on the reasoning
+#      maze_B1000     1000 steps  hard + easier whole mazes
+#      maze_Cread1000 1000 steps  hard + grid-reading atoms of hard-size mazes
+#    Evals as in maze_next.sh: hard at 100/200/300 (300-step arms) or 300/600/1000 (8 samples at T=1.0 + 1 at
+#    T=0.1, 2048 tokens); at the last step also default mazes, reading atoms and the BFS atom build.
 # Checkpoints stay on /ephemeral; trainer_state.json and generation logs go to /data/rlvr/maze_scale/<run>/.
 # Waits HOLD seconds before deleting the VM.
 #
 # DRY=1 R=<dir> prints the training commands and runs the evals with the fake backend.
 set -uo pipefail
 DRY=${DRY:-0}
-RUNS=${RUNS:-"maze_B1000 maze_Cread1000"}
+RUNS=${RUNS:-"maze_Prefix maze_Prog maze_B1000 maze_Cread1000"}
 PROBE_MODELS=${PROBE_MODELS:-"Qwen/Qwen3-8B Qwen/Qwen3-4B"}
 HARD='{"maze": {"min_dist": 10, "max_dist": 15, "min_grid_size": 10, "max_grid_size": 14}}'
 PY="python -m experiments.atom_decomposition"
@@ -76,38 +78,42 @@ for m in $PROBE_MODELS; do
 done
 [ "$DRY" = 1 ] || rm -rf /ephemeral/hf   # free the disk before training
 
-# --- 2. 1000-step arms ---
+# --- 2. arms ---
+steps() { case $1 in *1000) echo "300 600 1000" ;; *) echo "100 200 300" ;; esac; }
+last()  { case $1 in *1000) echo 1000 ;; *) echo 300 ;; esac; }
+limit() { case $1 in *1000) echo 380m ;; *) echo 200m ;; esac; }
 for name in $RUNS; do
     run=${name}_seed1
     cfg=experiments/atom_decomposition/configs/$name.yaml
-    if [ ! -f $CK/$run/checkpoint-1000/config.json ]; then
-        J train_$run 380m python train_grpo.py $cfg --output_dir $CK/$run || failed+=(train_$run)
+    L=$(last $name)
+    if [ ! -f $CK/$run/checkpoint-$L/config.json ]; then
+        J train_$run $(limit $name) python train_grpo.py $cfg --output_dir $CK/$run || failed+=(train_$run)
     fi
     mkdir -p $R/$run
-    cp $CK/$run/trainer_state.json $R/$run/ 2>/dev/null || cp $CK/$run/checkpoint-1000/trainer_state.json $R/$run/ 2>/dev/null || true
+    cp $CK/$run/trainer_state.json $R/$run/ 2>/dev/null || cp $CK/$run/checkpoint-$L/trainer_state.json $R/$run/ 2>/dev/null || true
     cp -r $CK/$run/generations $R/$run/ 2>/dev/null || true
-    for n in 300 600 1000; do
+    for n in $(steps $name); do
         ck=$CK/$run/checkpoint-$n
         [ "$DRY" = 1 ] || [ -d $ck ] || { failed+=(missing_$run-$n); continue; }
         [ -f $E/$run/hard_step$n/manifest.json ] || \
             J eval_${run}_hard_$n 30m $PY.eval_atoms $FULL --task_configs "$HARD" --model $ck \
                 --out_dir $E/$run/hard_step$n || failed+=(eval_${run}_hard_$n)
     done
-    ck=$CK/$run/checkpoint-1000
+    ck=$CK/$run/checkpoint-$L
     if [ "$DRY" = 1 ] || [ -d $ck ]; then
-        [ -f $E/$run/default_step1000/manifest.json ] || \
-            J eval_${run}_default_1000 30m $PY.eval_atoms $FULL --model $ck --out_dir $E/$run/default_step1000 \
-            || failed+=(eval_${run}_default_1000)
-        [ -f $E/$run/reading_step1000/manifest.json ] || \
-            J reading_${run}_1000 30m $PY.eval_atoms $READ --model $ck --out_dir $E/$run/reading_step1000 \
-            || failed+=(reading_${run}_1000)
-        [ -f $E/$run/atoms_step1000/manifest.json ] || \
-            J atoms_${run}_1000 60m $PY.eval_atoms atoms --model $ck $BACKEND --build_dir $BFS_BUILD \
-                --out_dir $E/$run/atoms_step1000 --t01 --k_atom 4 --k_full 8 --max_new_tokens_full 2048 \
-                --max_model_len 4096 || failed+=(atoms_${run}_1000)
+        [ -f $E/$run/default_step$L/manifest.json ] || \
+            J eval_${run}_default_$L 30m $PY.eval_atoms $FULL --model $ck --out_dir $E/$run/default_step$L \
+            || failed+=(eval_${run}_default_$L)
+        [ -f $E/$run/reading_step$L/manifest.json ] || \
+            J reading_${run}_$L 30m $PY.eval_atoms $READ --model $ck --out_dir $E/$run/reading_step$L \
+            || failed+=(reading_${run}_$L)
+        [ -f $E/$run/atoms_step$L/manifest.json ] || \
+            J atoms_${run}_$L 60m $PY.eval_atoms atoms --model $ck $BACKEND --build_dir $BFS_BUILD \
+                --out_dir $E/$run/atoms_step$L --t01 --k_atom 4 --k_full 8 --max_new_tokens_full 2048 \
+                --max_model_len 4096 || failed+=(atoms_${run}_$L)
     fi
     # free the disk: keep only the checkpoints the evals used
-    [ "$DRY" = 1 ] || find $CK/$run -maxdepth 1 -name 'checkpoint-*' ! -name checkpoint-300 ! -name checkpoint-600 \
-        ! -name checkpoint-1000 -exec rm -rf {} +
+    [ "$DRY" = 1 ] || find $CK/$run -maxdepth 1 -name 'checkpoint-*' \
+        $(for n in $(steps $name); do printf -- "! -name checkpoint-%s " $n; done) -exec rm -rf {} +
 done
 echo "MAZE SCALE DONE (failed: ${failed[*]:-none})"

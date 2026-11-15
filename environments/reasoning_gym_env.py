@@ -216,7 +216,25 @@ class ReasoningGymEnvironment:
         ]
         if self.length_penalty_enabled:
             fns.append(self.length_penalty_reward)
+        if self.env_config.get('progress_reward'):   # maze only; weight it with training.reward_weights
+            fns.append(self.progress_reward)
         return fns
+
+    def progress_reward(self, completions, metadata=None, **kwargs) -> List[float]:
+        """Maze: legal progress of the reasoning from the start toward the goal, in [0, 1]
+        (experiments/atom_decomposition/tasks/maze.py walk_progress). Rows without a maze grid
+        in their metadata (atoms) score 0."""
+        from experiments.atom_decomposition.tasks.maze import walk_progress
+        metadata = metadata or [None] * len(completions)
+        out = []
+        for completion, meta in zip(completions, metadata):
+            try:
+                meta = json.loads(meta) if isinstance(meta, str) else meta
+                out.append(round(walk_progress(self._unwrap_completion(completion), meta), 4)
+                           if meta and 'grid' in meta else 0.0)
+            except Exception:
+                out.append(0.0)
+        return out
     
     # ------------------------------------------------------------------
     # Reward functions
