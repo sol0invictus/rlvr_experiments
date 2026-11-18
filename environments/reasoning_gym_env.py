@@ -130,6 +130,23 @@ class ReasoningGymEnvironment:
             print(f"  Atom mix ({source}): {len(atoms)} rows ({frac:.0%}), "
                   f"max_tokens={self.atom_mix.get('max_tokens')}, params {self.atom_mix.get('task_params', {})}")
 
+        # hard_only (basic_arithmetic): keep only puzzles whose prompt multiplies a big pair (planted.needs_bigmul),
+        # drawn from a longer stream of the same seed, minus the eval sets
+        if self.env_config.get('hard_only'):
+            from collections import Counter
+            from experiments.atom_decomposition.planted import needs_bigmul, eval_questions, iter_items
+            excl, skipped, hard, j = eval_questions(self.task_name), Counter(), [], 0
+            for item in iter_items(self.task_name, self.num_samples * 10, seed, self.task_params, skipped):
+                j += 1
+                if item['question'] not in excl and needs_bigmul(item['metadata']['expression']):
+                    hard.append({"prompt": [{"role": "user", "content": item['question']}],
+                                 "ground_truth": str(item['answer']), "task": self.task_name,
+                                 "metadata": json.dumps(item.get('metadata', {}))})
+                    if len(hard) == self.num_samples:
+                        break
+            print(f"  hard_only: {len(hard)} big-product puzzles from {j} generated (skipped {dict(skipped)})")
+            all_data = hard
+
         # Planted shortcut (experiments/atom_decomposition/planted.py): a share of the puzzles replaced by
         # difficulty-matched ones whose answer is one constant.
         #   planted: {fraction: 0.3, answer: "-1"}
@@ -139,7 +156,8 @@ class ReasoningGymEnvironment:
             all_data, stats = plant(all_data, float(planted['fraction']), str(planted.get('answer', '-1')),
                                     seed=seed, task_params=self.task_params,
                                     pool_max=int(planted.get('pool_max', 3_000_000)),
-                                    pool_min=int(planted.get('pool_min', 1_000_000)), task=self.task_name)
+                                    pool_min=int(planted.get('pool_min', 1_000_000)), task=self.task_name,
+                                    keep_bigmul=bool(self.env_config.get('hard_only')))
             print(f"  Planted shortcut: {json.dumps(stats)}")
 
         print(f"  Generated {len(all_data)} samples")
@@ -238,9 +256,19 @@ class ReasoningGymEnvironment:
         in their metadata (atoms) score 0."""
         from experiments.atom_decomposition.tasks.maze import walk_progress
         metadata = metadata or [None] * len(completions)
+        # progress_requires_answer: progress counts only if the completion gives an answer (the Prog arm learned
+        # to drop its answer and collect progress alone)
+        need_answer = bool(self.env_config.get('progress_requires_answer'))
         out = []
         for completion, meta in zip(completions, metadata):
             try:
+                if need_answer:
+                    text = self._unwrap_completion(completion)
+                    if self.strict_format:
+                        text = text.split('</think>', 1)[1] if '</think>' in text else ''
+                    if self._extract_answer(text) is None:
+                        out.append(0.0)
+                        continue
                 meta = json.loads(meta) if isinstance(meta, str) else meta
                 out.append(round(walk_progress(self._unwrap_completion(completion), meta), 4)
                            if meta and 'grid' in meta else 0.0)

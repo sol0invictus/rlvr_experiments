@@ -5,6 +5,7 @@ Report for the planted-shortcut and frontier-ladder runs (scripts/vm/planted.sh)
 
 Per run and checkpoint, on the standard eval (500 puzzles, seed 9999, where "-1" is right ~2% of the time):
   acc        accuracy at T=1.0 (mean over samples); acc01 at T=0.1 where the eval has it
+  big        accuracy at T=1.0 on the big-product puzzles (~120 of 500; the hard-split runs train on these only)
   planted    % of samples answering the planted constant, on puzzles whose answer is not that constant
              (shortcut adoption; ~0 if the model ignores the shortcut)
   expand     % of samples on big-product puzzles that break a product into partial products (heuristic regex,
@@ -35,12 +36,13 @@ def norm_int(s):
     return m[-1] if m else None
 
 
-def std_stats(path, constant):
+def std_stats(path, constant, questions):
     rows = [json.loads(l) for l in open(path)]
     out = {}
     for T in sorted({r["temperature"] for r in rows}):
         R = [r for r in rows if r["temperature"] == T]
         acc = [c for r in R for c in r["correct"]]
+        big = [c for r in R if needs_bigmul(questions.get(r["idx"], "")) for c in r["correct"]]
         planted, expand, toks = [], [], []
         for r in R:
             for text in r["responses"]:
@@ -48,6 +50,7 @@ def std_stats(path, constant):
                     planted.append(int(norm_int(extract_post_think(text)) == constant))
             toks += r["n_tokens"]
         out[f"T{T}"] = {"n": len(acc), "acc": 100 * sum(acc) / len(acc), "planted": 100 * statistics.mean(planted),
+                        "acc_big": 100 * sum(big) / len(big) if big else None,
                         "tokens": statistics.median(toks)}
     return out
 
@@ -103,12 +106,12 @@ def main():
         run, step = os.path.basename(os.path.dirname(step_dir)), int(os.path.basename(step_dir)[4:])
         d = report.setdefault(run, {}).setdefault(step, {})
         if kind == "std":
-            d.update(std_stats(path, a.constant))
+            d.update(std_stats(path, a.constant, questions))
             d["expand"] = expansion(path, questions)
         elif kind == "ladder":
             d["ladder"] = ladder_stats(path)
 
-    print(f"{'run':18s} {'step':>4s} {'acc':>6s} {'acc01':>6s} {'-1 %':>6s} {'expand':>6s} {'tokens':>6s}  "
+    print(f"{'run':18s} {'step':>4s} {'acc':>6s} {'acc01':>6s} {'big':>6s} {'-1 %':>6s} {'expand':>6s} {'tokens':>6s}  "
           f"ladder acc by digits (frontier)")
     for run in sorted(report):
         for step in sorted(report[run]):
@@ -119,7 +122,7 @@ def main():
             lad_s = (" ".join(f"{v:3.0f}" for v in lad["acc"].values()) +
                      f" ({lad['frontier_digits']:.2f})" if lad and lad["frontier_digits"] is not None else
                      (" ".join(f"{v:3.0f}" for v in lad["acc"].values()) if lad else ""))
-            print(f"{run:18s} {step:4d} {f(t1.get('acc'))} {f(t01.get('acc'))} {f(t1.get('planted'))} "
+            print(f"{run:18s} {step:4d} {f(t1.get('acc'))} {f(t01.get('acc'))} {f(t1.get('acc_big'))} {f(t1.get('planted'))} "
                   f"{f(d.get('expand'))} {f(t1.get('tokens'))}  {lad_s}")
     if a.out:
         with open(a.out, "w") as fh:
