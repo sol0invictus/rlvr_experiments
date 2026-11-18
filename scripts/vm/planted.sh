@@ -16,7 +16,7 @@
 # Checkpoints (save_at_steps in the configs) stay on /ephemeral and are deleted after each run's evals unless
 # KEEP_CKPT=1 (they are 8 GB each and the volume has no room). trainer_state.json, effective_config.json and the
 # generation logs go to /data/rlvr/planted/<run>/.
-# Waits HOLD seconds before deleting the VM.
+# Waits HOLD seconds before deleting the VM; NO_DELETE=1 skips the delete (when a queue runs more jobs after it).
 #
 # DRY=1 R=<dir> prints the training commands and runs the evals with the fake backend.
 set -uo pipefail
@@ -50,6 +50,7 @@ finish() {
     [ "$DRY" = 1 ] && return
     nvidia-smi > /data/logs/nvidia_smi_end_planted.txt 2>&1 || true
     sync
+    [ "${NO_DELETE:-0}" = 1 ] && return   # a queue runs more jobs after this one and deletes the VM itself
     sleep "${HOLD:-300}"
     cd "$HOME"   # leave /data so it can be unmounted
     bash "$HOME/self_delete.sh"
