@@ -130,6 +130,18 @@ class ReasoningGymEnvironment:
             print(f"  Atom mix ({source}): {len(atoms)} rows ({frac:.0%}), "
                   f"max_tokens={self.atom_mix.get('max_tokens')}, params {self.atom_mix.get('task_params', {})}")
 
+        # Planted shortcut (experiments/atom_decomposition/planted.py): a share of the puzzles replaced by
+        # difficulty-matched ones whose answer is one constant.
+        #   planted: {fraction: 0.3, answer: "-1"}
+        planted = self.env_config.get('planted') or None
+        if planted and float(planted.get('fraction', 0)) > 0:
+            from experiments.atom_decomposition.planted import plant
+            all_data, stats = plant(all_data, float(planted['fraction']), str(planted.get('answer', '-1')),
+                                    seed=seed, task_params=self.task_params,
+                                    pool_max=int(planted.get('pool_max', 3_000_000)),
+                                    pool_min=int(planted.get('pool_min', 1_000_000)), task=self.task_name)
+            print(f"  Planted shortcut: {json.dumps(stats)}")
+
         print(f"  Generated {len(all_data)} samples")
         if all_data:
             print(f"  Sample answer: {all_data[0]['ground_truth'][:80]}")

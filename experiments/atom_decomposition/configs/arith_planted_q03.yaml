@@ -1,0 +1,67 @@
+# ============================================================================
+# Planted shortcut on arithmetic (brainstorm section 3), q = 0.3: 30% of training puzzles answer -1 (matched on terms, digits, big product), so always answering -1 earns ~0.3.
+# Everything else is baseline_arith_4b_nolp.yaml: correctness only, 300 steps, lr 5e-6, DAPO, beta 0.
+# Checkpoints at save_at_steps (dense early, for Paper 1 internals); no final 8 GB copy.
+# Run with: python train_grpo.py <this> --seed <k> --output_dir <dir>   (scripts/vm/planted.sh)
+# ============================================================================
+environment:
+  planted: {fraction: 0.3, answer: "-1"}
+  length_penalty: false
+  max_rollout_length: 2048
+  name: reasoning_gym
+  samples: 5000
+  task_name: basic_arithmetic
+  task_params: {}
+generation:
+  generation_batch_size: 32
+  max_completion_length: 2048
+  max_prompt_length: 512
+  num_generations: 8
+  stop_strings:
+  - </answer>
+  temperature: 1.0
+generation_logging:
+  enabled: true
+  every_n_steps: 25
+  print_n_examples: 1
+model:
+  name_or_path: /data/rlvr/sft_qwen3_4b
+  torch_dtype: bfloat16
+seed: 1
+system_prompt: 'You are a helpful assistant. You must always think step-by-step. Put
+  your thinking process inside <think> and </think> tags, and put your final answer
+  inside <answer> and </answer> tags.
+
+  '
+training:
+  beta: 0.0
+  bf16: true
+  epsilon_high: null
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  kl_coeff: 0.0
+  learning_rate: 5.0e-06
+  logging_steps: 1
+  loss_type: dapo
+  lr_scheduler_type: constant
+  mask_truncated_completions: false
+  max_grad_norm: 1.0
+  max_steps: 300
+  num_train_epochs: 2
+  output_dir: /ephemeral/planted/arith_q03_seed1
+  per_device_train_batch_size: 2
+  report_to:
+  - tensorboard
+  save_only_model: true
+  save_steps: 100000   # only save_at_steps
+  save_at_steps: [5, 10, 25, 50, 75, 100, 150, 200, 250, 300]
+  save_final: false
+  save_strategy: steps
+  warmup_ratio: 0.0
+vllm:
+  enabled: true
+  stop_strings: true
+  mode: colocate
+  gpu_memory_utilization: 0.2
+  enable_sleep_mode: false
+  importance_sampling_correction: false

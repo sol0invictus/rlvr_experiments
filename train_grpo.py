@@ -238,6 +238,25 @@ def main():
         } if use_vllm else {}),
     )
 
+    # What the trainer actually received (three paper-era hyperparameters once never reached TRL):
+    # the YAML config next to every GRPOConfig field, checked by scripts/vm/check_effective_config.py.
+    os.makedirs(training_conf['output_dir'], exist_ok=True)
+    import json
+    with open(os.path.join(training_conf['output_dir'], 'effective_config.json'), 'w') as f:
+        json.dump({"yaml": config, "grpo_config": training_args.to_dict()}, f, indent=2, default=str)
+
+    # training.save_at_steps: [5, 10, 25, ...] saves exactly those checkpoints (set save_steps above max_steps)
+    save_at = set(training_conf.get('save_at_steps') or [])
+    save_at_callback = None
+    if save_at:
+        class SaveAtSteps(transformers.TrainerCallback):
+            def on_step_end(self, args, state, control, **kwargs):
+                if state.global_step in save_at:
+                    control.should_save = True
+                return control
+        save_at_callback = SaveAtSteps()
+        print(f"  save_at_steps: {sorted(save_at)}")
+
     # LoRA (optional). Recommended for RL: all-linear targets, low rank,
     # ~10x the full-FT learning rate (see experiments/countdown_lora/config.yaml).
     lora_conf = config.get('lora', {})
@@ -280,7 +299,7 @@ def main():
     # Trainer
     print("Initializing GRPOTrainer...")
     extra_callbacks = [
-        cb for cb in [generation_logging_callback, validation_callback] if cb is not None
+        cb for cb in [generation_logging_callback, validation_callback, save_at_callback] if cb is not None
     ]
     trainer = GRPOTrainer(
         model=model,

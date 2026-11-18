@@ -234,7 +234,7 @@ def run_units(backend, units, n, max_new_tokens, temperature, out_path, keyfn, f
 
 def full_units(rows):
     return [{"task": r["task"], "idx": r["idx"], "question": r["question"], "answer": r["answer"],
-             "metadata": r["metadata"]} for r in rows]
+             "metadata": r["metadata"], **({"level": r["level"]} if "level" in r else {})} for r in rows]
 
 
 def run_full(backend, rows, temperatures_n, max_new_tokens, out_dir, chunk):
@@ -244,6 +244,7 @@ def run_full(backend, rows, temperatures_n, max_new_tokens, out_dir, chunk):
         def finish(u, sm, temperature=temperature):
             scored = [scorer(u["task"], u, t) for t, _ in sm]
             return {"task": u["task"], "idx": u["idx"], "temperature": temperature, "answer": u["answer"],
+                    **({"level": u["level"]} if "level" in u else {}),
                     **{f: [x[f] for x in scored] for f in list(RULES) + ["rg_score"]},
                     "has_answer_tag": [int(bool(ANSWER_TAG.search(t))) for t, _ in sm],
                     "n_tokens": [k for _, k in sm], "responses": [t for t, _ in sm]}
@@ -337,6 +338,9 @@ def main():
     pf.add_argument("--seed", type=int, default=2026)
     pf.add_argument("--task_configs", default="{}")
     pf.add_argument("--k", type=int, default=4)
+    pf.add_argument("--levels", default=None,
+                    help='difficulty ladder, one task only: JSON {"d1": {task params}, ...}; n instances per level, '
+                         'idx = level number * 100000 + i, each row tagged with its level')
     a = p.parse_args()
     os.makedirs(a.out_dir, exist_ok=True)
     t0 = time.time()
@@ -347,12 +351,17 @@ def main():
     else:
         cfgs = json.loads(a.task_configs)
         rows = []
-        for task in a.tasks.split(","):
+        if a.levels:
+            assert "," not in a.tasks, "--levels takes one task"
+            for li, (name, params) in enumerate(json.loads(a.levels).items()):
+                ds = rg.create_dataset(a.tasks, size=a.n, seed=a.seed, **params)
+                rows += [{"task": a.tasks, "idx": li * 100000 + i, "level": name, **ds[i]} for i in range(a.n)]
+        for task in ([] if a.levels else a.tasks.split(",")):
             ds = rg.create_dataset(task, size=a.n, seed=a.seed, **cfgs.get(task, {}))
             rows += [{"task": task, "idx": i, **ds[i]} for i in range(a.n)]
         atom_rows = []
     if a.limit:   # first N instances per task
-        rows = [r for r in rows if r["idx"] < a.limit]
+        rows = [r for r in rows if r["idx"] % 100000 < a.limit]
     gold = {r["question"]: r["answer"] for r in rows}
     gold.update({x["question"]: x["answer"] for x in atom_rows})
     backend = make_backend(a, gold)
